@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ServiceCombinePicker } from "@/components/appointments/service-combine-picker";
 import { DemoNotice, DepositNotice, PolicyNotice } from "@/components/booking/policy-notice";
 import { SlotPicker } from "@/components/booking/slot-picker";
+import { TotalBar } from "@/components/booking/total-bar";
 import { HeroBand } from "@/components/layout/hero-band";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,7 +122,7 @@ export function BookingFlow() {
         <p className="text-sm">Paso {step === "services" ? 1 : step === "when" ? 2 : 3} de {totalSteps}</p>
       </HeroBand>
 
-      <div className="flex flex-col gap-5 px-4 py-6">
+      <div className="flex flex-col gap-5 px-4 pb-28 pt-6">
         {step === "services" ? (
           <>
             <ServiceCombinePicker services={state.services} variants={state.variants} value={selections} onChange={(v) => { setSelections(v); setSlot(null); }} />
@@ -137,9 +138,11 @@ export function BookingFlow() {
               </div>
             </div>
             <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
-            <Button type="button" className="h-14 text-base font-semibold" disabled={selections.length === 0} onClick={() => setStep("when")}>
-              Elegir día y hora
-            </Button>
+            <TotalBar detail={selections.length === 0 ? "Elegí un servicio" : formatDuration(totals.durationMin)} total={selections.length === 0 ? "—" : formatARS(totals.price)}>
+              <Button type="button" className="h-12 px-6 text-base font-semibold" disabled={selections.length === 0} onClick={() => setStep("when")}>
+                Ver horarios
+              </Button>
+            </TotalBar>
           </>
         ) : null}
 
@@ -167,17 +170,15 @@ export function BookingFlow() {
 
             {hasDeposit ? <DepositNotice amount={totals.depositAmount} /> : null}
             <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
-            <div className="rounded-card bg-sunken p-3 text-sm">
-              <span className="font-semibold">{formatDuration(totals.durationMin)}</span> · {formatARS(totals.price)}
-            </div>
-
-            <Button loading={paying} type="button" className="h-14 text-base font-semibold" disabled={paying} onClick={() => {
-              if (!validateWhen()) return;
-              if (hasDeposit) setStep("pay");
-              else void confirm(false);
-            }}>
-              {hasDeposit ? "Seguir a la seña" : "Confirmar turno"}
-            </Button>
+            <TotalBar detail={`Total · ${formatDuration(totals.durationMin)}`} total={formatARS(totals.price)}>
+              <Button loading={paying} type="button" className="h-12 px-6 text-base font-semibold" disabled={paying} onClick={() => {
+                if (!validateWhen()) return;
+                if (hasDeposit) setStep("pay");
+                else void confirm(false);
+              }}>
+                {hasDeposit ? "Seguir a la seña" : "Confirmar"}
+              </Button>
+            </TotalBar>
           </>
         ) : null}
 

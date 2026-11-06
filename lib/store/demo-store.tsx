@@ -14,6 +14,7 @@ import {
 import { addMinutes, dayKey, normalizePhone } from "@/lib/format";
 import { buildReminder } from "@/lib/mocks/whatsapp";
 import { newOffer, type FreeSlot } from "@/lib/waitlist";
+import { adjustedPrice, snapshotCatalog, type AdjustDirection, type CatalogSnapshot } from "@/lib/services";
 import { SEED_VERSION, buildSeed } from "@/lib/seed";
 import { totalsFor } from "@/lib/scheduling";
 import type {
@@ -154,7 +155,19 @@ export interface OnboardingInput {
   name: string;
   type: Salon["type"];
   services: Array<Pick<Service, "name" | "baseDurationMin" | "price">>;
-  team: string[];
+  team: Array<{ name: string; commissionPercent: number }>;
+}
+
+export interface ServiceFormInput {
+  id?: string;
+  name: string;
+  baseDurationMin: number;
+  price: number;
+  requiresDeposit: boolean;
+  depositPercent: number;
+  variants: Array<{ id?: string; name: string; extraDurationMin: number; extraPrice: number }>;
+  /** null = no tocar los insumos que ya tiene */
+  suppliesCost: number | null;
 }
 
 interface DemoContextValue {
@@ -188,6 +201,11 @@ interface DemoContextValue {
   skipOffer: (entryId: string) => void;
   /** Solo para la demo: hace como que ya pasaron los 15 minutos */
   expireOfferNow: (entryId: string) => void;
+  /** Crea o edita un servicio con sus variantes y, si se pasa, su costo de insumos */
+  saveService: (input: ServiceFormInput) => Service;
+  /** Sube o baja un porcentaje los servicios elegidos. Devuelve cómo estaba el catálogo, para deshacer. */
+  adjustPrices: (serviceIds: string[], percent: number, direction: AdjustDirection, round: boolean) => CatalogSnapshot;
+  restoreCatalog: (snapshot: CatalogSnapshot) => void;
   /** Cambia el precio de un servicio o de una variante */
   updateServicePrice: (serviceId: string, variantId: string | null, price: number) => void;
   bookFromWaitlist: (entryId: string, professionalId: string, startsAt: string) => Appointment | null;
@@ -249,11 +267,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       .replace(/[̀-ͯ]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "") || "mi-salon";
-    const professionals: Professional[] = input.team.map((name, i) => ({
+    const professionals: Professional[] = input.team.map((member, i) => ({
       id: uid("pro"),
       salonId,
-      name,
-      commissionPercent: 40,
+      name: member.name,
+      commissionPercent: member.commissionPercent,
       active: true,
       colorIndex: ((i % 3) + 1) as Professional["colorIndex"],
     }));
@@ -500,6 +518,75 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const saveService = useCallback((input: ServiceFormInput): Service => {
+    const st = stateRef.current;
+    const id = input.id ?? uid("svc");
+    const service: Service = {
+      id,
+      salonId: st.salon.id,
+      name: input.name.trim(),
+      baseDurationMin: input.baseDurationMin,
+      price: input.price,
+      requiresDeposit: input.requiresDeposit,
+      depositPercent: input.requiresDeposit ? input.depositPercent : 0,
+      canCombine: true,
+    };
+    const services = input.id ? st.services.map((x) => (x.id === id ? service : x)) : [...st.services, service];
+    const previous = st.variants.filter((v) => v.serviceId === id);
+    const variants = [
+      ...st.variants.filter((v) => v.serviceId !== id),
+      ...input.variants.map((v) => ({
+        id: v.id ?? uid("var"),
+        serviceId: id,
+        name: v.name.trim(),
+        extraDurationMin: v.extraDurationMin,
+        extraPrice: v.extraPrice,
+        supplyMultiplier: previous.find((p) => p.id === v.id)?.supplyMultiplier ?? 1.5,
+      })),
+    ];
+    let products = st.products;
+    let serviceProducts = st.serviceProducts;
+    if (input.suppliesCost !== null) {
+      const productId = `prod-sv-${id}`;
+      products = [
+        ...products.filter((p) => p.id !== productId),
+        { id: productId, salonId: st.salon.id, name: `Insumos de ${service.name}`, unitCost: input.suppliesCost, stock: 0, minStock: 0 },
+      ];
+      serviceProducts = [
+        ...serviceProducts.filter((sp) => sp.serviceId !== id),
+        { serviceId: id, productId, quantity: 1 },
+      ];
+    }
+    dispatch({ type: "patch", patch: { services, variants, products, serviceProducts } });
+    return service;
+  }, []);
+
+  const adjustPrices = useCallback(
+    (serviceIds: string[], percent: number, direction: AdjustDirection, round: boolean): CatalogSnapshot => {
+      const st = stateRef.current;
+      const before = snapshotCatalog(st);
+      dispatch({
+        type: "patch",
+        patch: {
+          services: st.services.map((x) =>
+            serviceIds.includes(x.id) ? { ...x, price: adjustedPrice(x.price, percent, direction, round) } : x,
+          ),
+          variants: st.variants.map((v) =>
+            serviceIds.includes(v.serviceId)
+              ? { ...v, extraPrice: adjustedPrice(v.extraPrice, percent, direction, round) }
+              : v,
+          ),
+        },
+      });
+      return before;
+    },
+    [],
+  );
+
+  const restoreCatalog = useCallback((snapshot: CatalogSnapshot) => {
+    dispatch({ type: "patch", patch: { services: snapshot.services, variants: snapshot.variants } });
+  }, []);
+
   const updateServicePrice = useCallback((serviceId: string, variantId: string | null, price: number) => {
     dispatch({ type: "setServicePrice", serviceId, variantId, price });
   }, []);
@@ -562,6 +649,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       renewOffer,
       skipOffer,
       expireOfferNow,
+      saveService,
+      adjustPrices,
+      restoreCatalog,
       updateServicePrice,
       bookFromWaitlist,
       prepareMessage,
@@ -586,6 +676,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       renewOffer,
       skipOffer,
       expireOfferNow,
+      saveService,
+      adjustPrices,
+      restoreCatalog,
       updateServicePrice,
       bookFromWaitlist,
       prepareMessage,

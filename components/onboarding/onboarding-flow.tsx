@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { HeroBand } from "@/components/layout/hero-band";
+import { Banner, BannerDescription, BannerTitle } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatARS, formatDuration } from "@/lib/format";
@@ -36,37 +38,79 @@ const TITLE: Record<Step, string> = {
   team: "¿Quiénes atienden?",
 };
 
+const SUBTITLE: Partial<Record<Step, string>> = {
+  services: "Ajustá el precio y la duración de cada uno",
+  team: "Sumá a tu equipo y cuánto cobra cada uno",
+};
+
+interface ServiceDraft {
+  key: string;
+  name: string;
+  minutes: string;
+  price: string;
+  on: boolean;
+  custom: boolean;
+}
+
+interface MemberDraft {
+  name: string;
+  commission: string;
+}
+
+const digits = (v: string) => v.replace(/\D/g, "");
+
+function defaultsFor(type: SalonType): ServiceDraft[] {
+  const preset = type === "barberia" ? ["Corte", "Barba"] : ["Corte"];
+  return CATALOG.map((c) => ({
+    key: c.name,
+    name: c.name,
+    minutes: String(c.baseDurationMin),
+    price: String(c.price),
+    on: preset.includes(c.name),
+    custom: false,
+  }));
+}
+
 export function OnboardingFlow() {
   const { completeOnboarding } = useDemo();
   const router = useRouter();
   const [step, setStep] = useState<Step>("type");
   const [type, setType] = useState<SalonType>("peluqueria");
   const [name, setName] = useState("");
-  const [picked, setPicked] = useState<string[]>(["Corte"]);
-  const [team, setTeam] = useState<string[]>([""]);
+  const [services, setServices] = useState<ServiceDraft[]>(() => defaultsFor("peluqueria"));
+  const [team, setTeam] = useState<MemberDraft[]>([{ name: "", commission: "40" }]);
   const [error, setError] = useState("");
 
   const index = STEPS.indexOf(step);
+  const patchService = (key: string, patch: Partial<ServiceDraft>) =>
+    setServices((cur) => cur.map((s) => (s.key === key ? { ...s, ...patch } : s)));
 
   function next() {
     setError("");
     if (step === "type") {
-      setPicked(type === "barberia" ? ["Corte", "Barba"] : ["Corte"]);
+      setServices(defaultsFor(type));
       setStep("name");
     } else if (step === "name") {
       if (!name.trim()) return setError("Escribí el nombre de tu salón.");
       setStep("services");
     } else if (step === "services") {
-      if (picked.length === 0) return setError("Elegí al menos un servicio.");
+      const chosen = services.filter((s) => s.on);
+      if (chosen.length === 0) return setError("Elegí al menos un servicio.");
+      if (chosen.some((s) => !s.name.trim())) return setError("Poné nombre a cada servicio.");
+      if (chosen.some((s) => !Number(s.price) || Number(s.price) <= 0)) return setError("Revisá los precios: tienen que ser mayores a cero.");
       setStep("team");
     } else {
-      const names = team.map((t) => t.trim()).filter(Boolean);
-      if (names.length === 0) return setError("Sumá al menos una persona.");
+      const members = team
+        .map((m) => ({ name: m.name.trim(), commissionPercent: Math.min(100, Number(m.commission) || 0) }))
+        .filter((m) => m.name);
+      if (members.length === 0) return setError("Sumá al menos una persona.");
       completeOnboarding({
         name: name.trim(),
         type,
-        services: CATALOG.filter((c) => picked.includes(c.name)),
-        team: names,
+        services: services
+          .filter((s) => s.on)
+          .map((s) => ({ name: s.name.trim(), baseDurationMin: Number(s.minutes) || 30, price: Number(s.price) })),
+        team: members,
       });
       router.push("/hoy");
     }
@@ -74,7 +118,13 @@ export function OnboardingFlow() {
 
   return (
     <>
-      <HeroBand tone="accent" eyebrow={`Paso ${index + 1} de ${STEPS.length}`} title={TITLE[step]} />
+      <HeroBand
+        tone="accent"
+        eyebrow={`Paso ${index + 1} de ${STEPS.length}`}
+        title={TITLE[step]}
+      >
+        {SUBTITLE[step] ? <p className="text-base">{SUBTITLE[step]}</p> : null}
+      </HeroBand>
       <div className="flex flex-col gap-5 px-4 py-6">
         {index > 0 ? (
           <button type="button" onClick={() => setStep(STEPS[index - 1])} className="flex min-h-touch items-center gap-1 self-start text-sm font-medium text-link">
@@ -86,7 +136,7 @@ export function OnboardingFlow() {
           <div role="group" aria-label="Tipo de salón" className="flex flex-col gap-2">
             {TYPES.map((t) => (
               <button key={t.value} type="button" aria-pressed={type === t.value} onClick={() => setType(t.value)}
-                className={cn("min-h-16 rounded-card border-[1.5px] p-4 text-left transition-colors duration-base ease-out", type === t.value ? "border-accent-border bg-accent" : "border-subtle bg-surface")}>
+                className={cn("min-h-16 rounded-card border p-4 text-left transition-colors duration-base ease-out", type === t.value ? "border-accent-border bg-accent" : "border-subtle bg-surface")}>
                 <span className="block text-base font-semibold">{t.label}</span>
                 <span className="block text-sm text-muted-foreground">{t.hint}</span>
               </button>
@@ -103,40 +153,65 @@ export function OnboardingFlow() {
         ) : null}
 
         {step === "services" ? (
-          <ul className="flex flex-col gap-2">
-            {CATALOG.map((c) => {
-              const on = picked.includes(c.name);
-              return (
-                <li key={c.name}>
-                  <button type="button" aria-pressed={on} onClick={() => setPicked(on ? picked.filter((p) => p !== c.name) : [...picked, c.name])}
-                    className={cn("flex min-h-16 w-full items-center justify-between rounded-card border-[1.5px] p-4 text-left transition-colors duration-base ease-out", on ? "border-accent-border bg-accent" : "border-subtle bg-surface")}>
-                    <span>
-                      <span className="block text-base font-semibold">{c.name}</span>
-                      <span className="block text-sm text-muted-foreground">{formatDuration(c.baseDurationMin)}</span>
-                    </span>
-                    <span className="font-medium">{formatARS(c.price)}</span>
-                  </button>
+          <>
+            <ul className="divide-y divide-border">
+              {services.map((s) => (
+                <li key={s.key} className="flex items-center gap-3 py-3">
+                  <Checkbox checked={s.on} onCheckedChange={(v) => patchService(s.key, { on: v })} aria-label={`Incluir ${s.name || "servicio"}`} />
+                  <div className="min-w-0 flex-1">
+                    {s.custom ? (
+                      <Input aria-label="Nombre del servicio" value={s.name} onChange={(e) => patchService(s.key, { name: e.target.value })} className="h-11" placeholder="Nombre" />
+                    ) : (
+                      <>
+                        <p className="truncate text-base font-semibold">{s.name}</p>
+                        <p className="text-sm text-muted-foreground">{formatDuration(Number(s.minutes) || 0)}</p>
+                      </>
+                    )}
+                  </div>
+                  <Input aria-label={`Minutos de ${s.name || "servicio"}`} inputMode="numeric" value={s.minutes} onChange={(e) => patchService(s.key, { minutes: digits(e.target.value) })} className="h-11 w-16 text-right" />
+                  <Input aria-label={`Precio de ${s.name || "servicio"}`} inputMode="numeric" value={s.price} onChange={(e) => patchService(s.key, { price: digits(e.target.value) })} className="h-11 w-24 text-right" />
                 </li>
-              );
-            })}
-          </ul>
+              ))}
+            </ul>
+            <p className="text-xs text-tertiary">Minutos y precio en pesos. Podés cambiar todo después, en Servicios y precios.</p>
+            <Button type="button" variant="ghost" className="h-12 self-start" leadingIcon={Plus}
+              onClick={() => setServices((cur) => [...cur, { key: `custom-${cur.length}-${Date.now()}`, name: "", minutes: "45", price: "", on: true, custom: true }])}>
+              Agregar otro servicio
+            </Button>
+            {services.some((s) => s.on && Number(s.price) > 0) ? (
+              <p className="text-sm text-muted-foreground">
+                {services.filter((s) => s.on).length} servicios · el más caro: {formatARS(Math.max(...services.filter((s) => s.on).map((s) => Number(s.price) || 0)))}
+              </p>
+            ) : null}
+          </>
         ) : null}
 
         {step === "team" ? (
-          <div className="flex flex-col gap-3">
-            {team.map((member, i) => (
-              <div key={i} className="flex gap-2">
-                <Input aria-label={`Persona ${i + 1}`} value={member} onChange={(e) => setTeam(team.map((t, n) => (n === i ? e.target.value : t)))} className="h-12" placeholder="Nombre" />
-                {team.length > 1 ? (
-                  <Button type="button" variant="ghost" className="size-12 shrink-0 p-0" aria-label="Quitar persona" onClick={() => setTeam(team.filter((_, n) => n !== i))} leadingIcon={X}>
-                  </Button>
-                ) : null}
-              </div>
-            ))}
-            <Button type="button" variant="secondary" className="min-h-12 gap-2" onClick={() => setTeam([...team, ""])}>
-              <Plus className="size-4" aria-hidden />Sumar a otra persona
+          <>
+            <ul className="divide-y divide-border">
+              {team.map((member, i) => (
+                <li key={i} className="flex items-center gap-3 py-3">
+                  <Input aria-label={`Persona ${i + 1}`} value={member.name} onChange={(e) => setTeam(team.map((t, n) => (n === i ? { ...t, name: e.target.value } : t)))} className="h-11 flex-1" placeholder="Nombre" />
+                  <div className="flex items-center gap-1">
+                    <Input aria-label={`Comisión de ${member.name || `la persona ${i + 1}`}`} inputMode="numeric" value={member.commission} onChange={(e) => setTeam(team.map((t, n) => (n === i ? { ...t, commission: digits(e.target.value).slice(0, 3) } : t)))} className="h-11 w-16 text-right" />
+                    <span className="text-sm text-muted-foreground">%</span>
+                  </div>
+                  {team.length > 1 ? (
+                    <Button type="button" variant="ghost" size="icon" className="size-11" aria-label="Quitar persona" onClick={() => setTeam(team.filter((_, n) => n !== i))}>
+                      <X className="size-5" aria-hidden />
+                    </Button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <Button type="button" variant="ghost" className="h-12 self-start" leadingIcon={Plus} onClick={() => setTeam([...team, { name: "", commission: "40" }])}>
+              Sumar a otra persona
             </Button>
-          </div>
+            <Banner status="info" contrast="high">
+              <BannerTitle>Para qué sirve</BannerTitle>
+              <BannerDescription>Con la comisión calculamos cuánto te queda en cada servicio.</BannerDescription>
+            </Banner>
+          </>
         ) : null}
 
         {error ? <p className="text-sm text-danger-fg">{error}</p> : null}

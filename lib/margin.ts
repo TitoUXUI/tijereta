@@ -28,7 +28,7 @@ export const MARGIN_LABEL: Record<MarginLevel, string> = {
   loss: "Perdés plata",
 };
 
-function suppliesCostOf(state: DemoState, service: Service, multiplier: number): number {
+export function suppliesCostOf(state: DemoState, service: Service, multiplier: number): number {
   return (
     state.serviceProducts
       .filter((sp) => sp.serviceId === service.id)
@@ -86,7 +86,7 @@ export function marginRows(state: DemoState): MarginRow[] {
 export const TARGET_MARGIN_PERCENT = HEALTHY_MARGIN_PERCENT;
 
 /** Margen que queda con un precio nuevo, con los mismos insumos y la misma comisión */
-export function marginAt(row: MarginRow, newPrice: number, commissionPercent: number) {
+export function marginAt(row: Pick<MarginRow, "suppliesCost">, newPrice: number, commissionPercent: number) {
   const commissionCost = Math.round((newPrice * commissionPercent) / 100);
   const margin = newPrice - row.suppliesCost - commissionCost;
   const marginPercent = newPrice === 0 ? 0 : Math.round((margin / newPrice) * 100);

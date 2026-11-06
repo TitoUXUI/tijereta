@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Hourglass,
   Percent,
+  Tag,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,10 @@ export function navFor(role: Role): NavItem[] {
     { href: "/agenda", label: "Agenda", icon: CalendarDays },
     { href: "/espera", label: "Espera", icon: Hourglass },
   ];
-  if (role === "owner") base.push({ href: "/margen", label: "Margen", icon: Percent });
+  if (role === "owner") {
+    base.push({ href: "/servicios", label: "Servicios", icon: Tag });
+    base.push({ href: "/margen", label: "Margen", icon: Percent });
+  }
   return base;
 }
 
