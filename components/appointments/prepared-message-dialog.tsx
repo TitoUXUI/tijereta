@@ -40,7 +40,7 @@ export function PreparedMessageSheet({ reminders, title, onClose }: PreparedMess
               <p className="mt-1 text-sm">{r.message}</p>
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 className="mt-2 min-h-touch gap-2"
                 onClick={async () => {

@@ -24,7 +24,7 @@ const TONE: Record<AppointmentStatus, string> = {
 
 export function StatusBadge({ status }: { status: AppointmentStatus }) {
   return (
-    <Badge variant="outline" className={cn("rounded-tag font-medium", TONE[status])}>
+    <Badge variant="dot" className={cn("font-medium", TONE[status])}>
       {LABEL[status]}
     </Badge>
   );

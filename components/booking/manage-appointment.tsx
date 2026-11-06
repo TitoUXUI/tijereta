@@ -87,7 +87,7 @@ export function ManageAppointment({ token }: { token: string }) {
             <Button asChild className="h-14 gap-2 text-base font-semibold">
               <Link href={`/turno/${token}/reagendar`}><CalendarClock className="size-5" aria-hidden />Reprogramar</Link>
             </Button>
-            <Button type="button" variant="outline" className="h-12 gap-2" onClick={() => setConfirming(true)}>
+            <Button type="button" variant="secondary" className="h-12 gap-2" onClick={() => setConfirming(true)}>
               <CalendarX2 className="size-4" aria-hidden />Cancelar turno
             </Button>
           </>
@@ -106,7 +106,7 @@ export function ManageAppointment({ token }: { token: string }) {
             <Button asChild className="h-14 text-base font-semibold">
               <Link href={`/turno/${token}/reagendar`}>Mejor lo reprogramo</Link>
             </Button>
-            <Button type="button" variant="outline" className="h-12" onClick={() => { cancelAppointment(appointment.id); setConfirming(false); toast.success("Turno cancelado. ¡Gracias por avisar!"); }}>
+            <Button type="button" variant="secondary" className="h-12" onClick={() => { cancelAppointment(appointment.id); setConfirming(false); toast.success("Turno cancelado. ¡Gracias por avisar!"); }}>
               Sí, cancelar turno
             </Button>
           </SheetFooter>

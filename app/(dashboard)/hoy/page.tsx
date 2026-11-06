@@ -74,7 +74,7 @@ export default function HoyPage() {
             </ul>
           )}
           {waitingCount > 0 ? (
-            <Button asChild variant="outline" className="min-h-12 justify-start gap-2">
+            <Button asChild variant="secondary" className="min-h-12 justify-start gap-2">
               <Link href="/espera">
                 <Hourglass className="size-4" aria-hidden />
                 {waitingCount} {waitingCount === 1 ? "persona espera" : "personas esperan"} un horario: ofrecerles un hueco

@@ -119,15 +119,12 @@ const config: Config = {
         md: "var(--shadow-md)",
         sheet: "var(--shadow-sheet)",
       },
-      gridRowStart: Object.fromEntries(Array.from({ length: 30 }, (_, i) => [String(i + 1), String(i + 1)])),
-      gridRowEnd: Object.fromEntries(Array.from({ length: 30 }, (_, i) => [String(i + 1), String(i + 1)])),
       minHeight: { touch: "var(--size-touch-min)" },
       minWidth: { touch: "var(--size-touch-min)" },
       transitionDuration: { base: "200ms" },
       transitionTimingFunction: { out: "cubic-bezier(0.16, 1, 0.3, 1)" },
     },
   },
-  safelist: [{ pattern: /^row-(start|end)-\d+$/ }],
   plugins: [],
 };
 export default config;

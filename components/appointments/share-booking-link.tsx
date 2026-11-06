@@ -45,7 +45,7 @@ export function ShareBookingLink({ salon }: { salon: Salon }) {
         </Button>
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           className="min-h-12 flex-1"
           onClick={() => copy(url, "Link copiado")}
         >

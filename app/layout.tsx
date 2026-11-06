@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Gabarito, Plus_Jakarta_Sans } from "next/font/google";
-import { DemoProvider } from "@/lib/store/demo-store";
-import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/components/providers";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -30,12 +29,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR" className={`${jakarta.variable} ${gabarito.variable}`}>
+    <html lang="es-AR" className={`${jakarta.variable} ${gabarito.variable}`} suppressHydrationWarning>
       <body>
-        <DemoProvider>
-          {children}
-          <Toaster position="top-center" />
-        </DemoProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

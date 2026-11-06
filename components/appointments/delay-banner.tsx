@@ -37,7 +37,7 @@ export function DelayBanner() {
         <div key={pro.id} role="status" className="flex flex-wrap items-center gap-3 rounded-card border border-warning-border bg-warning-bg p-3 text-warning-fg">
           <Clock className="size-5 shrink-0" aria-hidden />
           <p className="flex-1 text-sm font-medium">{pro.name} viene con {minutes} min de demora. Los turnos que quedan se corrieron.</p>
-          <Button type="button" variant="outline" size="sm" className="min-h-touch" onClick={() => { setDelay(pro.id, 0); toast.success("Demora quitada"); }}>
+          <Button type="button" variant="secondary" size="sm" className="min-h-touch" onClick={() => { setDelay(pro.id, 0); toast.success("Demora quitada"); }}>
             Quitar demora
           </Button>
         </div>
@@ -55,7 +55,7 @@ export function DelayBanner() {
         </div>
         <div role="group" aria-label="Minutos de demora" className="flex gap-1">
           {OPTIONS.map((m) => (
-            <Button key={m} type="button" variant="outline" size="sm" className="min-h-touch" onClick={() => {
+            <Button key={m} type="button" variant="secondary" size="sm" className="min-h-touch" onClick={() => {
               const created = setDelay(professionalId, m);
               if (created.length === 0) toast("No hay turnos pendientes de hoy para avisar.");
               else setMessages(created);

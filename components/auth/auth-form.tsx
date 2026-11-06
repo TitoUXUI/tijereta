@@ -109,10 +109,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </Button>
 
         <p className="text-center text-sm text-tertiary">o</p>
-        <Button type="button" variant="outline" className="h-14 text-base font-semibold" onClick={() => social("Google")}>
+        <Button type="button" variant="secondary" className="h-14 text-base font-semibold" onClick={() => social("Google")}>
           Seguir con Google
         </Button>
-        <Button type="button" variant="outline" className="h-14 text-base font-semibold" onClick={() => social("Apple")}>
+        <Button type="button" variant="secondary" className="h-14 text-base font-semibold" onClick={() => social("Apple")}>
           Seguir con Apple
         </Button>
 

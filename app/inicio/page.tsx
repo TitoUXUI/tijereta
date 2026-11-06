@@ -61,7 +61,7 @@ export default function InicioPage() {
                 <Link href={upcoming ? `/turno/${upcoming.manageToken}` : "#"}>{e.action}</Link>
               </Button>
             ) : (
-              <Button asChild variant="outline" className="mt-auto min-h-12"><Link href="/onboarding">{e.action}</Link></Button>
+              <Button asChild variant="secondary" className="mt-auto min-h-12"><Link href="/onboarding">{e.action}</Link></Button>
             )}
           </section>
         ))}

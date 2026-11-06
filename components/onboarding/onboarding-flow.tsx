@@ -134,7 +134,7 @@ export function OnboardingFlow() {
                 ) : null}
               </div>
             ))}
-            <Button type="button" variant="outline" className="min-h-12 gap-2" onClick={() => setTeam([...team, ""])}>
+            <Button type="button" variant="secondary" className="min-h-12 gap-2" onClick={() => setTeam([...team, ""])}>
               <Plus className="size-4" aria-hidden />Sumar a otra persona
             </Button>
           </div>

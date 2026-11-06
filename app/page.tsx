@@ -46,7 +46,7 @@ export default function LandingPage() {
           <Button asChild className="h-14 text-base font-semibold">
             <Link href="/registro">Probar gratis</Link>
           </Button>
-          <Button asChild variant="outline" className="h-14 text-base font-semibold">
+          <Button asChild variant="secondary" className="h-14 text-base font-semibold">
             <Link href="/login">Ya tengo cuenta</Link>
           </Button>
           <Button asChild variant="ghost" className="min-h-touch text-link">

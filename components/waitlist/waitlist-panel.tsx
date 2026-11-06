@@ -109,7 +109,7 @@ export function WaitlistPanel() {
                   <p className="mt-3 text-sm text-muted-foreground">Todavía no hay un hueco en esa franja. Si alguien cancela, aparece acá.</p>
                 )}
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <Button type="button" variant="outline" className="min-h-12 gap-2" disabled={!best} onClick={() => {
+                  <Button type="button" variant="secondary" className="min-h-12 gap-2" disabled={!best} onClick={() => {
                     if (!best) return;
                     const r = offerSlot(entry.id, `${formatDayLong(toISO(entry.preferredDay, best.hhmm))}, ${best.hhmm} hs con ${best.professionalName}`);
                     if (r) setMessages([r]);
