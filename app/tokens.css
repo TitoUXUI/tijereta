@@ -95,9 +95,9 @@
   --space-screen-margin: 16px;
   --space-section: 24px;
   --radius-tag: 8px;
-  --radius-control: 12px;
-  --radius-input: 12px;
-  --radius-card: 16px;
+  --radius-control: 8px;
+  --radius-input: 8px;
+  --radius-card: 12px;
   --radius-sheet: 24px;
   --radius-pill: 999px;
   --size-icon-sm: 16px;
@@ -111,7 +111,7 @@
   --size-avatar-md: 40px;
   --size-avatar-lg: 56px;
   --border-width-default: 1px;
-  --border-width-control: 1.5px;
+  --border-width-control: 1px;
   --border-width-focus: 2px;
 
   /* Tipografía */
