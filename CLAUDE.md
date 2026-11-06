@@ -95,7 +95,9 @@ El acento (Tangerine) **no lleva texto blanco**: el texto encima es `--color-tex
 10. [P-10] Costo y margen por servicio
 11. [P-20] Mi agenda y mis comisiones (profesional)
 
-**En el PRD, sin diseñar (no construir salvo pedido expreso):** P-01 Landing, P-02 Registro y login (mínimos si el prototipo los necesita), P-07 Clientes, P-08 Ficha de cliente, P-09 Servicios, variantes y precios, P-11 Caja y cobros, P-12 Comisiones, P-13 Stock, P-14 Facturación ARCA (simulada), P-15 Recordatorios y mensajes preparados, P-16 Equipo y roles, P-17 Perfil público y marketplace (simulado), P-18 Plan y suscripción, P-19 Configuración, P-23 Pago de la seña (paso opcional de P-22).
+**Pedidos después, ya diseñados y construidos:** P-01 Landing, P-02 Registro y login (simulados) y P-23 Pago de la seña (paso 4 de P-22 en Figma).
+
+**En el PRD, sin diseñar (no construir salvo pedido expreso):** P-07 Clientes, P-08 Ficha de cliente, P-09 Servicios, variantes y precios, P-11 Caja y cobros, P-12 Comisiones, P-13 Stock, P-14 Facturación ARCA (simulada), P-15 Recordatorios y mensajes preparados, P-16 Equipo y roles, P-17 Perfil público y marketplace (simulado), P-18 Plan y suscripción, P-19 Configuración.
 
 El detalle de cada pantalla (componentes, datos y tablas) está en `vault/outputs/prd-tijereta-v1.1-2026-11-05.md`, sección 3.5.
 

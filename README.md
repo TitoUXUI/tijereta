@@ -11,12 +11,14 @@ npm install
 npm run dev
 ```
 
-Abrí http://localhost:3000. La pantalla de inicio tiene un acceso por cada recorrido. Los datos de ejemplo se guardan en el navegador (localStorage) y se regeneran cada día; "Reiniciar demo" los restaura.
+Abrí http://localhost:3000. La landing lleva a la demo (`/inicio`), que tiene un acceso por cada recorrido. Los datos de ejemplo se guardan en el navegador (localStorage) y se regeneran cada día; "Reiniciar demo" los restaura.
 
 ## Recorrido central
 
 | Pantalla | Ruta |
 | --- | --- |
+| P-01 Landing | `/` |
+| P-02 Registro y login (simulados) | `/registro`, `/login` |
 | P-03 Onboarding del salón | `/onboarding` |
 | P-04 Hoy | `/hoy` |
 | P-05 Agenda del equipo, con aviso de demora | `/agenda` |
