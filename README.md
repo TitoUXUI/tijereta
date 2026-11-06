@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tijereta
 
-## Getting Started
+Prototipo de portfolio: una sola agenda para todo el equipo de peluquerías y barberías argentinas. El turno se carga una vez, venga del link que el salón pega en el chat o de un mensaje, y vive en la misma agenda.
 
-First, run the development server:
+> Nombre y logo provisorios. WhatsApp, Mercado Pago y ARCA están **simulados**: no se envía, cobra ni factura nada.
+
+## Probarlo
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrí http://localhost:3000. La pantalla de inicio tiene un acceso por cada recorrido. Los datos de ejemplo se guardan en el navegador (localStorage) y se regeneran cada día; "Reiniciar demo" los restaura.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Recorrido central
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Pantalla | Ruta |
+| --- | --- |
+| P-03 Onboarding del salón | `/onboarding` |
+| P-04 Hoy | `/hoy` |
+| P-05 Agenda del equipo, con aviso de demora | `/agenda` |
+| P-06 Nuevo turno (alta rápida, servicios combinados) | botón "Nuevo turno" |
+| P-21 / P-22 Reserva pública, con seña opcional | `/reservar/estudio-lupe` |
+| P-24 Gestionar mi turno | `/turno/[token]` |
+| P-25 Reagendar | `/turno/[token]/reagendar` |
+| P-26 Lista de espera | `/espera` |
+| P-10 Costo y margen por servicio (solo dueña) | `/margen` |
+| P-20 Mi agenda y mis comisiones (profesional) | `/mi-agenda` |
 
-## Learn More
+La barra "Modo demo" cambia el rol (dueña, recepción, profesional) para ver qué ve cada persona: el margen solo lo ve la dueña y la profesional ve únicamente lo suyo.
 
-To learn more about Next.js, take a look at the following resources:
+## Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Next.js 14 (App Router), TypeScript estricto, Tailwind CSS, shadcn/ui, Lucide, Recharts. Los tokens de diseño están en `app/tokens.css` y se mapean a Tailwind en `tailwind.config.ts`. Decisiones visuales en `docs/DESIGN.md`; contexto de producto en `docs/PRODUCT.md`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Datos
 
-## Deploy on Vercel
+La capa de datos (`lib/store/demo-store.tsx`) guarda en el navegador y tiene la misma forma que las tablas de `supabase/schema.sql`, así que se puede reemplazar por consultas del servidor sin tocar las pantallas. En una versión real, el acceso del cliente final a su turno por `manage_token` tiene que resolverse siempre del lado del servidor.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Comandos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `npm run dev`: servidor de desarrollo
+- `npm run build`: compilar
+- `npm run lint`: ESLint
+- `npm run type-check`: solo tipos
