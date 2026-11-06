@@ -180,7 +180,7 @@ export function OnboardingFlow() {
             </Button>
             {services.some((s) => s.on && Number(s.price) > 0) ? (
               <p className="text-sm text-muted-foreground">
-                {services.filter((s) => s.on).length} servicios · el más caro: {formatARS(Math.max(...services.filter((s) => s.on).map((s) => Number(s.price) || 0)))}
+                {services.filter((s) => s.on).length} {services.filter((s) => s.on).length === 1 ? "servicio" : "servicios"} · el más caro: {formatARS(Math.max(...services.filter((s) => s.on).map((s) => Number(s.price) || 0)))}
               </p>
             ) : null}
           </>

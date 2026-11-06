@@ -125,7 +125,7 @@ export function BookingFlow() {
       <div className="flex flex-col gap-5 px-4 pb-28 pt-6">
         {step === "services" ? (
           <>
-            <ServiceCombinePicker services={state.services} variants={state.variants} value={selections} onChange={(v) => { setSelections(v); setSlot(null); }} />
+            <ServiceCombinePicker services={state.services} variants={state.variants} value={selections} showTotal={false} onChange={(v) => { setSelections(v); setSlot(null); }} />
             <div className="flex flex-col gap-2">
               <p className="text-sm font-medium">¿Con quién?</p>
               <div role="group" aria-label="Profesional" className="flex flex-wrap gap-2">

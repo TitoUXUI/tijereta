@@ -11,10 +11,12 @@ interface ServiceCombinePickerProps {
   variants: ServiceVariant[];
   value: ServiceSelection[];
   onChange: (value: ServiceSelection[]) => void;
+  /** Muestra el total debajo de la lista (se apaga cuando hay una barra fija con el total) */
+  showTotal?: boolean;
 }
 
 /** Servicios combinados (corte + barba) con variante de duración (pelo largo) */
-export function ServiceCombinePicker({ services, variants, value, onChange }: ServiceCombinePickerProps) {
+export function ServiceCombinePicker({ services, variants, value, onChange, showTotal = true }: ServiceCombinePickerProps) {
   function toggle(service: Service) {
     const selected = value.some((v) => v.serviceId === service.id);
     if (selected) {
@@ -94,7 +96,7 @@ export function ServiceCombinePicker({ services, variants, value, onChange }: Se
           );
         })}
       </ul>
-      {value.length > 0 ? (
+      {showTotal && value.length > 0 ? (
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {formatDuration(totals.durationMin)} · <span className="font-semibold text-foreground">{formatARS(totals.price)}</span>
         </p>
