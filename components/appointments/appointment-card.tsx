@@ -64,7 +64,7 @@ export function AppointmentCard({
   );
 
   const classes =
-    "flex min-h-touch w-full items-start gap-3 rounded-card border border-subtle bg-surface p-3 text-left transition-colors duration-base ease-out hover:bg-sunken";
+    "flex min-h-touch w-full items-start gap-3 py-4 text-left transition-colors duration-base ease-out hover:bg-hover";
 
   if (onSelect) {
     return (

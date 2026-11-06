@@ -31,13 +31,16 @@ interface TeamAgendaProps {
   /** Si se pasa, solo se muestra la agenda de esa profesional (P-20) */
   onlyProfessionalId?: string;
   allowAddService?: boolean;
+  /** Si se pasa, muestra solo ese día y no la tira de días (ej. Hoy en línea de tiempo) */
+  fixedDay?: string;
 }
 
 /** Agenda única: una columna por profesional, bloques de color por turno */
-export function TeamAgenda({ onlyProfessionalId, allowAddService = false }: TeamAgendaProps) {
+export function TeamAgenda({ onlyProfessionalId, allowAddService = false, fixedDay }: TeamAgendaProps) {
   const { state } = useDemo();
   const days = useMemo(() => upcomingDays(7), []);
-  const [day, setDay] = useState(days[0]);
+  const [pickedDay, setDay] = useState(days[0]);
+  const day = fixedDay ?? pickedDay;
   const [selected, setSelected] = useState<string | null>(null);
   const [quick, setQuick] = useState<{ professionalId: string; slot: string } | null>(null);
 
@@ -52,7 +55,7 @@ export function TeamAgenda({ onlyProfessionalId, allowAddService = false }: Team
 
   return (
     <div className="flex flex-col gap-4">
-      <DayStrip days={days} day={day} onDayChange={setDay} />
+      {fixedDay ? null : <DayStrip days={days} day={day} onDayChange={setDay} />}
       <div className="overflow-x-auto rounded-card border border-subtle bg-surface">
         <div className="flex min-w-max">
           <div className="sticky left-0 z-20 w-12 shrink-0 bg-surface">

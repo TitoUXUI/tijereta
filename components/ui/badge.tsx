@@ -20,6 +20,9 @@ import { useSizeVariant } from "@/lib/size-context";
 // for marks like New that should follow the brand color.
 const badgeColors = {
   accent: "var(--fluid-accent, #6B97FF)",
+  // Tijereta: Crystal Blue y Port, los otros dos colores de la paleta
+  crystal: "var(--color-crystal-600)",
+  port: "var(--color-port-500)",
   gray: "#a3a3a3",
   red: "#ef4444",
   orange: "#f97316",

@@ -128,8 +128,7 @@ export function OnboardingFlow() {
               <div key={i} className="flex gap-2">
                 <Input aria-label={`Persona ${i + 1}`} value={member} onChange={(e) => setTeam(team.map((t, n) => (n === i ? e.target.value : t)))} className="h-12" placeholder="Nombre" />
                 {team.length > 1 ? (
-                  <Button type="button" variant="ghost" className="size-12 shrink-0 p-0" aria-label="Quitar persona" onClick={() => setTeam(team.filter((_, n) => n !== i))}>
-                    <X className="size-5" aria-hidden />
+                  <Button type="button" variant="ghost" className="size-12 shrink-0 p-0" aria-label="Quitar persona" onClick={() => setTeam(team.filter((_, n) => n !== i))} leadingIcon={X}>
                   </Button>
                 ) : null}
               </div>

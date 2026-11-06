@@ -38,7 +38,7 @@ export function PreparedMessageSheet({ reminders, title, onClose }: PreparedMess
                 Para {r.toPhone}
               </p>
               <p className="mt-1 text-sm">{r.message}</p>
-              <Button
+              <Button leadingIcon={Copy}
                 type="button"
                 variant="secondary"
                 size="sm"
@@ -52,7 +52,6 @@ export function PreparedMessageSheet({ reminders, title, onClose }: PreparedMess
                   }
                 }}
               >
-                <Copy className="size-4" aria-hidden />
                 Copiar
               </Button>
             </li>

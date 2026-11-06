@@ -26,8 +26,8 @@ export default function MargenPage() {
       <HeroBand tone="brand" eyebrow="Costo y margen" title="¿Cuánto te queda?">
         <p className="text-base">
           {worst.length > 0
-            ? `Ojo: ${worst.length === 1 ? "un servicio te hace" : `${worst.length} servicios te hacen`} perder plata.`
-            : "Todos tus servicios dejan margen."}
+            ? `${worst.length === 1 ? "Un servicio te hace" : `${worst.length} servicios te hacen`} perder plata.`
+            : "Ningún servicio te hace perder plata."}
         </p>
       </HeroBand>
       <div className="px-4 py-6 md:px-8">

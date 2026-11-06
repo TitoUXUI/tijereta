@@ -113,6 +113,14 @@ export interface AppointmentItem {
   addedBy: "booking" | "staff";
 }
 
+/** Horario que se le ofreció a una persona de la espera, con vencimiento */
+export interface WaitlistOffer {
+  startsAt: string;
+  professionalId: string;
+  offeredAt: string;
+  expiresAt: string;
+}
+
 export interface WaitlistEntry {
   id: string;
   salonId: string;
@@ -122,6 +130,8 @@ export interface WaitlistEntry {
   preferredFrom: string;
   preferredTo: string;
   status: WaitlistStatus;
+  offer: WaitlistOffer | null;
+  createdAt: string;
 }
 
 export interface Reminder {

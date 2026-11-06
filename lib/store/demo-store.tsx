@@ -13,7 +13,8 @@ import {
 } from "react";
 import { addMinutes, dayKey, normalizePhone } from "@/lib/format";
 import { buildReminder } from "@/lib/mocks/whatsapp";
-import { buildSeed } from "@/lib/seed";
+import { newOffer, type FreeSlot } from "@/lib/waitlist";
+import { SEED_VERSION, buildSeed } from "@/lib/seed";
 import { totalsFor } from "@/lib/scheduling";
 import type {
   Appointment,
@@ -52,6 +53,9 @@ type Action =
   | { type: "addPayment"; payment: Payment }
   | { type: "addWaitlist"; entry: WaitlistEntry; client?: Client }
   | { type: "updateWaitlist"; id: string; status: WaitlistEntry["status"] }
+  | { type: "patchWaitlist"; id: string; patch: Partial<WaitlistEntry> }
+  | { type: "moveWaitlistToEnd"; id: string }
+  | { type: "setServicePrice"; serviceId: string; variantId: string | null; price: number }
   | { type: "setDelay"; ids: string[]; minutes: number };
 
 function reducer(state: DemoState, action: Action): DemoState {
@@ -99,6 +103,32 @@ function reducer(state: DemoState, action: Action): DemoState {
           w.id === action.id ? { ...w, status: action.status } : w,
         ),
       };
+    case "patchWaitlist":
+      return {
+        ...state,
+        waitlist: state.waitlist.map((w) => (w.id === action.id ? { ...w, ...action.patch } : w)),
+      };
+    case "moveWaitlistToEnd": {
+      const entry = state.waitlist.find((w) => w.id === action.id);
+      if (!entry) return state;
+      return { ...state, waitlist: [...state.waitlist.filter((w) => w.id !== action.id), entry] };
+    }
+    case "setServicePrice": {
+      const service = state.services.find((x) => x.id === action.serviceId);
+      if (!service) return state;
+      if (action.variantId) {
+        return {
+          ...state,
+          variants: state.variants.map((v) =>
+            v.id === action.variantId ? { ...v, extraPrice: Math.max(0, action.price - service.price) } : v,
+          ),
+        };
+      }
+      return {
+        ...state,
+        services: state.services.map((x) => (x.id === action.serviceId ? { ...x, price: action.price } : x)),
+      };
+    }
     case "setDelay":
       return {
         ...state,
@@ -148,7 +178,18 @@ interface DemoContextValue {
     preferredFrom: string;
     preferredTo: string;
   }) => void;
-  offerSlot: (entryId: string, slotLabel: string) => Reminder | null;
+  /** Ofrece un horario libre a una persona de la espera, con vencimiento */
+  offerSlot: (entryId: string, slot: FreeSlot, slotLabel: string) => Reminder | null;
+  /** Deshace una oferta: la persona vuelve a esperar donde estaba */
+  undoOffer: (entryId: string) => void;
+  /** Vuelve a ofrecerle el mismo horario, con 15 minutos nuevos */
+  renewOffer: (entryId: string) => void;
+  /** Pasa a la persona al final de la fila (no respondió) */
+  skipOffer: (entryId: string) => void;
+  /** Solo para la demo: hace como que ya pasaron los 15 minutos */
+  expireOfferNow: (entryId: string) => void;
+  /** Cambia el precio de un servicio o de una variante */
+  updateServicePrice: (serviceId: string, variantId: string | null, price: number) => void;
   bookFromWaitlist: (entryId: string, professionalId: string, startsAt: string) => Appointment | null;
   prepareMessage: (kind: MessageKind, clientId: string, appointmentId?: string, slotLabel?: string) => Reminder | null;
   recordDeposit: (appointmentId: string, amount: number, method: string) => void;
@@ -173,7 +214,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw) as DemoState;
-        if (saved.seedDay === dayKey(new Date())) {
+        if (saved.seedDay === `${dayKey(new Date())}-${SEED_VERSION}`) {
           dispatch({ type: "replace", state: saved });
         }
       }
@@ -400,6 +441,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         preferredFrom: input.preferredFrom,
         preferredTo: input.preferredTo,
         status: "waiting",
+        offer: null,
+        createdAt: new Date().toISOString(),
       },
     });
   }, []);
@@ -418,15 +461,48 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   );
 
   const offerSlot = useCallback<DemoContextValue["offerSlot"]>(
-    (entryId, slotLabel) => {
+    (entryId, slot, slotLabel) => {
       const entry = stateRef.current.waitlist.find((w) => w.id === entryId);
       if (!entry) return null;
       const reminder = prepareMessage("offer_slot", entry.clientId, undefined, slotLabel);
-      dispatch({ type: "updateWaitlist", id: entryId, status: "offered" });
+      dispatch({
+        type: "patchWaitlist",
+        id: entryId,
+        patch: { status: "offered", offer: newOffer(slot) },
+      });
       return reminder;
     },
     [prepareMessage],
   );
+
+  const undoOffer = useCallback((entryId: string) => {
+    dispatch({ type: "patchWaitlist", id: entryId, patch: { status: "waiting", offer: null } });
+  }, []);
+
+  const renewOffer = useCallback((entryId: string) => {
+    const entry = stateRef.current.waitlist.find((w) => w.id === entryId);
+    if (!entry?.offer) return;
+    dispatch({ type: "patchWaitlist", id: entryId, patch: { status: "offered", offer: newOffer(entry.offer) } });
+  }, []);
+
+  const skipOffer = useCallback((entryId: string) => {
+    dispatch({ type: "patchWaitlist", id: entryId, patch: { status: "waiting", offer: null } });
+    dispatch({ type: "moveWaitlistToEnd", id: entryId });
+  }, []);
+
+  const expireOfferNow = useCallback((entryId: string) => {
+    const entry = stateRef.current.waitlist.find((w) => w.id === entryId);
+    if (!entry?.offer) return;
+    dispatch({
+      type: "patchWaitlist",
+      id: entryId,
+      patch: { offer: { ...entry.offer, expiresAt: new Date(Date.now() - 60_000).toISOString() } },
+    });
+  }, []);
+
+  const updateServicePrice = useCallback((serviceId: string, variantId: string | null, price: number) => {
+    dispatch({ type: "setServicePrice", serviceId, variantId, price });
+  }, []);
 
   const bookFromWaitlist = useCallback<DemoContextValue["bookFromWaitlist"]>(
     (entryId, professionalId, startsAt) => {
@@ -482,6 +558,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       addServiceToAppointment,
       addToWaitlist,
       offerSlot,
+      undoOffer,
+      renewOffer,
+      skipOffer,
+      expireOfferNow,
+      updateServicePrice,
       bookFromWaitlist,
       prepareMessage,
       recordDeposit,
@@ -501,6 +582,11 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       addServiceToAppointment,
       addToWaitlist,
       offerSlot,
+      undoOffer,
+      renewOffer,
+      skipOffer,
+      expireOfferNow,
+      updateServicePrice,
       bookFromWaitlist,
       prepareMessage,
       recordDeposit,

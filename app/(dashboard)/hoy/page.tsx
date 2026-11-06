@@ -1,19 +1,44 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { CalendarX2, Hourglass } from "lucide-react";
 import { AppointmentCard } from "@/components/appointments/appointment-card";
+import { DelayBanner } from "@/components/appointments/delay-banner";
 import { NewAppointmentButton } from "@/components/appointments/new-appointment-button";
 import { ShareBookingLink } from "@/components/appointments/share-booking-link";
+import { TeamAgenda } from "@/components/appointments/team-agenda";
 import { EmptyState } from "@/components/layout/empty-state";
 import { HeroBand } from "@/components/layout/hero-band";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsItem } from "@/components/ui/tabs";
 import { dayKey, formatDayLong } from "@/lib/format";
 import { openGaps } from "@/lib/scheduling";
 import { useDemo } from "@/lib/store/demo-store";
 
+const VIEW_KEY = "tijereta-hoy-view";
+
 export default function HoyPage() {
   const { state } = useDemo();
+  const [view, setView] = useState(0);
+
+  useEffect(() => {
+    try {
+      setView(window.localStorage.getItem(VIEW_KEY) === "timeline" ? 1 : 0);
+    } catch {
+      // Sin localStorage, arranca en lista.
+    }
+  }, []);
+
+  function changeView(index: number) {
+    setView(index);
+    try {
+      window.localStorage.setItem(VIEW_KEY, index === 1 ? "timeline" : "list");
+    } catch {
+      // Ignorado: la vista elegida solo es una comodidad.
+    }
+  }
+
   const today = dayKey(new Date());
   const todays = state.appointments
     .filter((a) => dayKey(a.startsAt) === today && a.status !== "cancelled" && a.status !== "rescheduled")
@@ -39,49 +64,59 @@ export default function HoyPage() {
       </HeroBand>
 
       <div className="flex flex-col gap-6 px-4 py-6 md:px-8">
-        <ShareBookingLink salon={state.salon} />
+        <Tabs selectedIndex={view} onSelect={changeView} aria-label="Cómo ver el día">
+          <TabsItem index={0} label="Lista" />
+          <TabsItem index={1} label="Línea de tiempo" />
+        </Tabs>
 
-        <section aria-labelledby="hoy-turnos" className="flex flex-col gap-3">
-          <h2 id="hoy-turnos" className="text-xl font-semibold">Turnos de hoy</h2>
-          {todays.length === 0 ? (
-            <EmptyState
-              icon={CalendarX2}
-              text="Todavía no cargaste turnos. Compartí tu link y empezá a recibirlos."
-            />
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {todays.map((a) => (
-                <li key={a.id}>
-                  <AppointmentCard state={state} appointment={a} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        {view === 0 ? (
+          <>
+            <ShareBookingLink salon={state.salon} />
 
-        <section aria-labelledby="hoy-huecos" className="flex flex-col gap-3">
-          <h2 id="hoy-huecos" className="text-xl font-semibold">Huecos libres de hoy</h2>
-          {gaps.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No quedan huecos de una hora o más.</p>
-          ) : (
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {gaps.slice(0, 6).map((g) => (
-                <li key={`${g.pro}-${g.from}`} className="flex min-h-touch items-center justify-between rounded-card border border-subtle bg-surface p-3">
-                  <span className="text-base font-medium">{g.from} a {g.to}</span>
-                  <span className="text-sm text-muted-foreground">{g.pro}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {waitingCount > 0 ? (
-            <Button asChild variant="secondary" className="min-h-12 justify-start gap-2">
-              <Link href="/espera">
-                <Hourglass className="size-4" aria-hidden />
-                {waitingCount} {waitingCount === 1 ? "persona espera" : "personas esperan"} un horario: ofrecerles un hueco
-              </Link>
-            </Button>
-          ) : null}
-        </section>
+            <section aria-labelledby="hoy-turnos" className="flex flex-col gap-3">
+              <h2 id="hoy-turnos" className="text-xl font-semibold">Turnos de hoy</h2>
+              {todays.length === 0 ? (
+                <EmptyState icon={CalendarX2} text="Todavía no cargaste turnos. Compartí tu link y empezá a recibirlos." />
+              ) : (
+                <ul className="divide-y divide-border">
+                  {todays.map((a) => (
+                    <li key={a.id}>
+                      <AppointmentCard state={state} appointment={a} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section aria-labelledby="hoy-huecos" className="flex flex-col gap-3">
+              <h2 id="hoy-huecos" className="text-xl font-semibold">Huecos libres de hoy</h2>
+              {gaps.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No quedan huecos de una hora o más.</p>
+              ) : (
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {gaps.slice(0, 6).map((g) => (
+                    <li key={`${g.pro}-${g.from}`} className="flex min-h-touch items-center justify-between rounded-control border border-dashed border-input p-3">
+                      <span className="text-base font-medium">{g.from} a {g.to}</span>
+                      <span className="text-sm text-muted-foreground">{g.pro}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {waitingCount > 0 ? (
+                <Button asChild variant="secondary" className="h-12 justify-start" leadingIcon={Hourglass}>
+                  <Link href="/espera">
+                    {waitingCount} {waitingCount === 1 ? "persona espera" : "personas esperan"} un horario: ofrecerles un hueco
+                  </Link>
+                </Button>
+              ) : null}
+            </section>
+          </>
+        ) : (
+          <>
+            <DelayBanner />
+            <TeamAgenda fixedDay={today} />
+          </>
+        )}
       </div>
     </>
   );

@@ -44,7 +44,7 @@ export function DemoBar() {
           </button>
         ))}
       </div>
-      <Button
+      <Button leadingIcon={RotateCcw}
         type="button"
         variant="ghost"
         size="sm"
@@ -55,7 +55,6 @@ export function DemoBar() {
           toast.success("Datos de ejemplo restaurados");
         }}
       >
-        <RotateCcw className="size-4" aria-hidden />
         Reiniciar demo
       </Button>
     </div>

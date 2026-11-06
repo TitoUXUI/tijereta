@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import type { AppointmentStatus } from "@/types";
 
 const LABEL: Record<AppointmentStatus, string> = {
@@ -12,19 +11,22 @@ const LABEL: Record<AppointmentStatus, string> = {
   no_show: "No vino",
 };
 
-const TONE: Record<AppointmentStatus, string> = {
-  pending: "bg-warning-bg text-warning-fg border-warning-border",
-  confirmed: "bg-success-bg text-success-fg border-success-border",
-  arrived: "bg-info-bg text-info-fg border-info-border",
-  done: "bg-sunken text-muted-foreground border-subtle",
-  cancelled: "bg-danger-bg text-danger-fg border-danger-border",
-  rescheduled: "bg-info-bg text-info-fg border-info-border",
-  no_show: "bg-danger-bg text-danger-fg border-danger-border",
+type StatusColor = "accent" | "crystal" | "gray" | "port";
+
+const COLOR: Record<AppointmentStatus, StatusColor> = {
+  pending: "accent",
+  confirmed: "crystal",
+  arrived: "crystal",
+  done: "gray",
+  cancelled: "port",
+  rescheduled: "crystal",
+  no_show: "port",
 };
 
+/** Punto de color más etiqueta: el color nunca va solo */
 export function StatusBadge({ status }: { status: AppointmentStatus }) {
   return (
-    <Badge variant="dot" className={cn("font-medium", TONE[status])}>
+    <Badge variant="dot" color={COLOR[status]}>
       {LABEL[status]}
     </Badge>
   );

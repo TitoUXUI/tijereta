@@ -30,7 +30,7 @@ export function ShareBookingLink({ salon }: { salon: Salon }) {
       </div>
       <p className="mt-1 break-all text-sm text-muted-foreground">{url}</p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <Button
+        <Button leadingIcon={Copy}
           type="button"
           className="min-h-12 flex-1 gap-2"
           onClick={() =>
@@ -40,7 +40,6 @@ export function ShareBookingLink({ salon }: { salon: Salon }) {
             )
           }
         >
-          <Copy className="size-4" aria-hidden />
           Copiar mensaje para el chat
         </Button>
         <Button

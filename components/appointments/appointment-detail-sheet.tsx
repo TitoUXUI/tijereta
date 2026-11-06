@@ -114,8 +114,7 @@ export function AppointmentDetailSheet({ appointmentId, onClose, allowAddService
                   </Button>
                 </div>
               ) : (
-                <Button type="button" variant="secondary" className="min-h-12 w-full gap-2" onClick={() => setAdding(true)}>
-                  <Plus className="size-4" aria-hidden />
+                <Button type="button" variant="secondary" className="min-h-12 w-full gap-2" onClick={() => setAdding(true)} leadingIcon={Plus}>
                   Sumar un servicio
                 </Button>
               )}
@@ -132,13 +131,11 @@ export function AppointmentDetailSheet({ appointmentId, onClose, allowAddService
               <Button type="button" variant="secondary" className="min-h-12 gap-2" onClick={() => {
                 const r = prepareMessage("confirm", client.id, appointment.id);
                 if (r) setMessages([r]);
-              }}>
-                <MessageCircle className="size-4" aria-hidden />
+              }} leadingIcon={MessageCircle}>
                 Mensaje
               </Button>
-              <Button asChild variant="secondary" className="min-h-12 gap-2">
+              <Button asChild variant="secondary" leadingIcon={ExternalLink} className="min-h-12">
                 <Link href={`/turno/${appointment.manageToken}`}>
-                  <ExternalLink className="size-4" aria-hidden />
                   Vista del cliente
                 </Link>
               </Button>

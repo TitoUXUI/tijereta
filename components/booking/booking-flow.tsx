@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowLeft, CalendarCheck, Loader2 } from "lucide-react";
+import { ArrowLeft, CalendarCheck } from "lucide-react";
 import { toast } from "sonner";
 import { ServiceCombinePicker } from "@/components/appointments/service-combine-picker";
 import { DemoNotice, DepositNotice, PolicyNotice } from "@/components/booking/policy-notice";
@@ -171,12 +171,11 @@ export function BookingFlow() {
               <span className="font-semibold">{formatDuration(totals.durationMin)}</span> · {formatARS(totals.price)}
             </div>
 
-            <Button type="button" className="h-14 text-base font-semibold" disabled={paying} onClick={() => {
+            <Button loading={paying} type="button" className="h-14 text-base font-semibold" disabled={paying} onClick={() => {
               if (!validateWhen()) return;
               if (hasDeposit) setStep("pay");
               else void confirm(false);
             }}>
-              {paying ? <Loader2 className="size-5 animate-spin" aria-hidden /> : null}
               {hasDeposit ? "Seguir a la seña" : "Confirmar turno"}
             </Button>
           </>
@@ -193,8 +192,7 @@ export function BookingFlow() {
               <p className="mt-1 text-sm text-muted-foreground">Del total de {formatARS(totals.price)}</p>
             </div>
             <DemoNotice>Esta pantalla simula Mercado Pago. No se cobra nada ni se piden datos de tarjeta.</DemoNotice>
-            <Button type="button" className="h-14 text-base font-semibold" disabled={paying} onClick={() => void confirm(true)}>
-              {paying ? <Loader2 className="size-5 animate-spin" aria-hidden /> : null}
+            <Button loading={paying} type="button" className="h-14 text-base font-semibold" disabled={paying} onClick={() => void confirm(true)}>
               {paying ? "Procesando…" : "Pagar seña (simulado)"}
             </Button>
           </>

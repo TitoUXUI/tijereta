@@ -12,6 +12,9 @@ import type {
   ServiceVariant,
 } from "@/types";
 
+/** Sube cuando cambia la forma de los datos de ejemplo, para descartar lo guardado en el navegador */
+export const SEED_VERSION = "v2";
+
 const SALON_ID = "salon-lupe";
 
 export const PROFESSIONAL_IDS = {
@@ -56,6 +59,7 @@ const clientNames: Array<[string, string]> = [
 type Line = [serviceId: string, variantId: string | null];
 
 interface AppointmentSeed {
+  status?: AppointmentStatus;
   day: number;
   at: string;
   pro: string;
@@ -76,6 +80,8 @@ const plan: AppointmentSeed[] = [
   { day: 0, at: "15:00", pro: PROFESSIONAL_IDS.mauro, client: 7, lines: [["svc-barba", null]], channel: "walk_in", by: "staff" },
   { day: 0, at: "16:00", pro: PROFESSIONAL_IDS.lupe, client: 8, lines: [["svc-color", null]], channel: "whatsapp", by: "staff" },
   { day: 0, at: "17:00", pro: PROFESSIONAL_IDS.vane, client: 9, lines: [["svc-trat", null]], channel: "link", by: "client" },
+  // Se canceló un turno de la tarde: queda un horario libre para ofrecer desde la espera
+  { day: 0, at: "18:00", pro: PROFESSIONAL_IDS.lupe, client: 2, lines: [["svc-corte", null]], channel: "whatsapp", by: "staff", status: "cancelled" },
   // Mañana y pasado
   { day: 1, at: "10:00", pro: PROFESSIONAL_IDS.vane, client: 4, lines: [["svc-color", null]], channel: "link", by: "client" },
   { day: 1, at: "11:00", pro: PROFESSIONAL_IDS.mauro, client: 1, lines: [["svc-corte", null], ["svc-barba", null]], channel: "whatsapp", by: "staff" },
@@ -129,7 +135,8 @@ export function buildSeed(now: Date = new Date()): DemoState {
     const endsAt = addMinutes(startsAt, duration);
 
     let status: AppointmentStatus;
-    if (new Date(endsAt) <= now) status = "done";
+    if (p.status) status = p.status;
+    else if (new Date(endsAt) <= now) status = "done";
     else if (new Date(startsAt) <= now) status = "arrived";
     else status = p.by === "client" && idx % 2 === 0 ? "pending" : "confirmed";
 
@@ -154,7 +161,7 @@ export function buildSeed(now: Date = new Date()): DemoState {
   });
 
   return {
-    seedDay: dayKey(now),
+    seedDay: `${dayKey(now)}-${SEED_VERSION}`,
     role: "owner",
     currentProfessionalId: PROFESSIONAL_IDS.vane,
     onboarded: true,
@@ -191,8 +198,9 @@ export function buildSeed(now: Date = new Date()): DemoState {
     appointments,
     items,
     waitlist: [
-      { id: "wl-0", salonId: SALON_ID, clientId: "cli-0", serviceId: "svc-color", preferredDay: dayAt(now, 1), preferredFrom: "14:00", preferredTo: "19:00", status: "waiting" },
-      { id: "wl-1", salonId: SALON_ID, clientId: "cli-1", serviceId: "svc-corte", preferredDay: dayAt(now, 0), preferredFrom: "17:00", preferredTo: "19:30", status: "waiting" },
+      { id: "wl-1", salonId: SALON_ID, clientId: "cli-1", serviceId: "svc-corte", preferredDay: dayAt(now, 0), preferredFrom: "17:00", preferredTo: "19:30", status: "waiting", offer: null, createdAt: dayAt(now, -2) },
+      { id: "wl-2", salonId: SALON_ID, clientId: "cli-9", serviceId: "svc-barba", preferredDay: dayAt(now, 0), preferredFrom: "14:00", preferredTo: "20:00", status: "waiting", offer: null, createdAt: dayAt(now, -1) },
+      { id: "wl-0", salonId: SALON_ID, clientId: "cli-0", serviceId: "svc-color", preferredDay: dayAt(now, 1), preferredFrom: "14:00", preferredTo: "19:00", status: "waiting", offer: null, createdAt: dayAt(now, 0) },
     ],
     reminders: [],
     payments: [],

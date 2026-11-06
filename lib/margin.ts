@@ -82,3 +82,40 @@ export function marginRows(state: DemoState): MarginRow[] {
   }
   return rows;
 }
+
+export const TARGET_MARGIN_PERCENT = HEALTHY_MARGIN_PERCENT;
+
+/** Margen que queda con un precio nuevo, con los mismos insumos y la misma comisión */
+export function marginAt(row: MarginRow, newPrice: number, commissionPercent: number) {
+  const commissionCost = Math.round((newPrice * commissionPercent) / 100);
+  const margin = newPrice - row.suppliesCost - commissionCost;
+  const marginPercent = newPrice === 0 ? 0 : Math.round((margin / newPrice) * 100);
+  return { price: newPrice, suppliesCost: row.suppliesCost, commissionCost, margin, marginPercent, level: marginLevel(margin, marginPercent) };
+}
+
+/** Precio que deja el margen objetivo, redondeado hacia arriba a $500. Null si no hay precio posible. */
+export function suggestedPrice(row: MarginRow, commissionPercent: number, target = TARGET_MARGIN_PERCENT): number | null {
+  const denominator = 1 - target / 100 - commissionPercent / 100;
+  if (denominator <= 0.05) return null;
+  const raw = row.suppliesCost / denominator;
+  return Math.ceil(raw / 500) * 500;
+}
+
+/** Máximo que se le sugiere subir un precio de una sola vez (+40%) */
+export const MAX_SUGGESTED_RISE = 1.4;
+
+export interface PriceSuggestion {
+  price: number;
+  targetPercent: number;
+}
+
+/** El mejor margen alcanzable subiendo hasta un 40% el precio: prueba 40, 30, 20 y 10 */
+export function bestSuggestion(row: MarginRow, commissionPercent: number): PriceSuggestion | null {
+  for (const target of [40, 30, 20, 10]) {
+    const price = suggestedPrice(row, commissionPercent, target);
+    if (price !== null && price <= row.price * MAX_SUGGESTED_RISE && price > row.price) {
+      return { price, targetPercent: target };
+    }
+  }
+  return null;
+}

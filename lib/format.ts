@@ -75,3 +75,14 @@ export function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, "");
   return `+54 9 ${digits}`.trim();
 }
+
+/** "Hoy", "Mañana" o el día de la semana, para frases cortas */
+export function dayLabel(iso: string, now: Date = new Date()): string {
+  const d = new Date(iso);
+  if (isSameDay(d, now)) return "Hoy";
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (isSameDay(d, tomorrow)) return "Mañana";
+  const text = d.toLocaleDateString("es-AR", { weekday: "long", day: "numeric" });
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

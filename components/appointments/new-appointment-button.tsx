@@ -14,8 +14,7 @@ export function NewAppointmentButton({ label = "Nuevo turno", className }: NewAp
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button type="button" className={className ?? "h-14 w-full gap-2 text-base font-semibold"} onClick={() => setOpen(true)}>
-        <Plus className="size-5" aria-hidden />
+      <Button type="button" className={className ?? "h-14 w-full gap-2 text-base font-semibold"} onClick={() => setOpen(true)} leadingIcon={Plus}>
         {label}
       </Button>
       <QuickBookingSheet open={open} onOpenChange={setOpen} />
