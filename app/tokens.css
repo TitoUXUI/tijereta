@@ -225,6 +225,27 @@
   --color-cat-6-bg: var(--color-crystal-300);
   --color-cat-6-fg: var(--color-port-950);
   --color-cat-6-stripe: var(--color-crystal-600);
+  /* Ilustraciones de estados vacíos: primitivas propias y tokens semánticos */
+  --color-ill-sun-300: #F6D888;
+  --color-ill-sun-400: #F2C14E;
+  --color-ill-sun-600: #C98F14;
+  --color-ill-skin-300: #F2B6A6;
+  --color-ill-skin-400: #E39A87;
+  --color-ill-skin-600: #B8695A;
+  --color-illustration-primary: var(--color-crystal-700);
+  --color-illustration-primary-soft: var(--color-crystal-300);
+  --color-illustration-object: var(--color-crystal-800);
+  --color-illustration-dark: var(--color-port-500);
+  --color-illustration-ink: var(--color-port-900);
+  --color-illustration-accent: var(--color-tangerine-400);
+  --color-illustration-highlight: var(--color-ill-sun-400);
+  --color-illustration-skin: var(--color-ill-skin-300);
+  --color-illustration-skin-light: var(--color-ill-skin-300);
+  --color-illustration-surface: var(--color-crystal-200);
+  --color-illustration-line: var(--color-crystal-100);
+  --color-illustration-backdrop: var(--color-crystal-50);
+  --color-illustration-neutral: var(--color-crystal-300);
+  --color-illustration-paper: var(--color-crystal-0);
 }
 
 :root[data-theme="dark"], .dark {
@@ -302,6 +323,17 @@
   --color-cat-6-bg: var(--color-crystal-300);
   --color-cat-6-fg: var(--color-port-950);
   --color-cat-6-stripe: var(--color-crystal-600);
+  --color-illustration-primary: var(--color-crystal-400);
+  --color-illustration-primary-soft: var(--color-crystal-600);
+  --color-illustration-object: var(--color-crystal-300);
+  --color-illustration-dark: var(--color-port-300);
+  --color-illustration-ink: var(--color-crystal-50);
+  --color-illustration-skin: var(--color-ill-skin-400);
+  --color-illustration-surface: var(--color-crystal-800);
+  --color-illustration-line: var(--color-crystal-700);
+  --color-illustration-backdrop: var(--color-crystal-900);
+  --color-illustration-neutral: var(--color-crystal-500);
+  --color-illustration-paper: var(--color-crystal-800);
 }
 
 @media (prefers-reduced-motion: reduce) {
