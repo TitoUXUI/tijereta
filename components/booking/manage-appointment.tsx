@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { StatusBadge } from "@/components/appointments/status-badge";
 import { DepositNotice, PolicyNotice } from "@/components/booking/policy-notice";
 import { EmptyState } from "@/components/layout/empty-state";
+import { Wordmark } from "@/components/layout/wordmark";
 import { HeroBand } from "@/components/layout/hero-band";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,9 +37,16 @@ export function ManageAppointment({ token }: { token: string }) {
   const appointment = state.appointments.find((a) => a.manageToken === token);
   if (!appointment) {
     return (
-      <div className="mx-auto max-w-md p-4 pt-16">
-        <EmptyState icon={SearchX} text="No encontramos este turno. Revisá que el link esté completo." />
-      </div>
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-4">
+        <Wordmark className="text-brand" />
+        <EmptyState
+          illustration="turno-perdido"
+          icon={SearchX}
+          title="No encontramos este turno"
+          text="Puede que el link esté incompleto o que el turno ya no exista. Si lo necesitás, reservá uno nuevo."
+          action={<Button asChild className="h-14 text-base font-semibold"><Link href={`/reservar/${state.salon.slug}`}>Reservar un turno nuevo</Link></Button>}
+        />
+      </main>
     );
   }
 
@@ -75,6 +83,9 @@ export function ManageAppointment({ token }: { token: string }) {
         ) : null}
         <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
 
+        {closed && appointment.status !== "cancelled" ? (
+          <p className="text-sm text-muted-foreground">Este turno ya pasó. ¡Gracias por venir! Cuando quieras, reservá otro.</p>
+        ) : null}
         {closed ? (
           <Button asChild className="h-14 text-base font-semibold">
             <Link href={`/reservar/${state.salon.slug}`}>Reservar otro turno</Link>
@@ -101,7 +112,9 @@ export function ManageAppointment({ token }: { token: string }) {
           <SheetHeader className="text-left">
             <SheetTitle className="text-xl font-semibold">¿Querés cancelar tu turno?</SheetTitle>
             <SheetDescription>
-              Sin problema, liberamos el horario para otra persona. Si preferís, podés reprogramarlo y elegir un día que te quede mejor.
+              {lateForFreeChange
+                ? "Falta poco para tu turno, así que la seña puede no devolverse según la política del salón. Si querés, escribile al salón y lo charlan."
+                : "Sin problema, liberamos el horario para otra persona. Si preferís, podés reprogramarlo y elegir un día que te quede mejor."}
             </SheetDescription>
           </SheetHeader>
           <SheetFooter className="mt-4 flex-col gap-2 sm:flex-col">

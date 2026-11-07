@@ -51,7 +51,7 @@ export default function MiAgendaPage() {
           tab === "agenda" ? (
             <TeamAgenda onlyProfessionalId={pro.id} allowAddService />
           ) : (
-            <CommissionStatement state={state} professionalId={pro.id} />
+            <CommissionStatement state={state} professionalId={pro.id} onBack={() => setTab("agenda")} />
           )
         ) : null}
       </div>

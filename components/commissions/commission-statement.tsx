@@ -2,11 +2,12 @@
 
 import { Wallet } from "lucide-react";
 import { EmptyState } from "@/components/layout/empty-state";
+import { Button } from "@/components/ui/button";
 import { formatARS, formatDayLong } from "@/lib/format";
 import type { DemoState } from "@/types";
 
 /** Comisiones con el detalle por ítem, nunca un total sin desglose */
-export function CommissionStatement({ state, professionalId }: { state: DemoState; professionalId: string }) {
+export function CommissionStatement({ state, professionalId, onBack }: { state: DemoState; professionalId: string; onBack?: () => void }) {
   const pro = state.professionals.find((p) => p.id === professionalId);
   if (!pro) return null;
 
@@ -33,7 +34,15 @@ export function CommissionStatement({ state, professionalId }: { state: DemoStat
   const total = lines.reduce((s, l) => s + l.amount, 0);
 
   if (lines.length === 0) {
-    return <EmptyState icon={Wallet} text="Cuando termines tus primeros turnos, tus comisiones aparecen acá." />;
+    return (
+      <EmptyState
+        illustration="monedas"
+        icon={Wallet}
+        title="Todavía no hay comisiones"
+        text="Cuando termines tu primer servicio, vas a ver el detalle de lo que te corresponde, servicio por servicio."
+        secondary={onBack ? <Button type="button" variant="ghost" className="h-12" onClick={onBack}>Volver a mi agenda</Button> : undefined}
+      />
+    );
   }
 
   return (

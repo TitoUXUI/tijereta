@@ -54,3 +54,24 @@ export function ShareBookingLink({ salon }: { salon: Salon }) {
     </section>
   );
 }
+
+/** El mismo botón de "Copiar mensaje para el chat", suelto (estados vacíos) */
+export function CopyBookingMessageButton({ salon, className }: { salon: Salon; className?: string }) {
+  return (
+    <Button
+      type="button"
+      className={className ?? "h-14 text-base font-semibold"}
+      leadingIcon={Copy}
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(messageFor("booking_link", { salonName: salon.name, slug: salon.slug }));
+          toast.success("Mensaje copiado. Pegalo en el chat.");
+        } catch {
+          toast.error("No pudimos copiar. Seleccioná el texto y copialo a mano.");
+        }
+      }}
+    >
+      Compartir mi link en el chat
+    </Button>
+  );
+}

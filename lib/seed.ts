@@ -13,7 +13,7 @@ import type {
 } from "@/types";
 
 /** Sube cuando cambia la forma de los datos de ejemplo, para descartar lo guardado en el navegador */
-export const SEED_VERSION = "v2";
+export const SEED_VERSION = "v3";
 
 const SALON_ID = "salon-lupe";
 
@@ -203,6 +203,27 @@ export function buildSeed(now: Date = new Date()): DemoState {
       { id: "wl-0", salonId: SALON_ID, clientId: "cli-0", serviceId: "svc-color", preferredDay: dayAt(now, 1), preferredFrom: "14:00", preferredTo: "19:00", status: "waiting", offer: null, createdAt: dayAt(now, 0) },
     ],
     reminders: [],
-    payments: [],
+    payments: [
+      { id: "pay-0", salonId: SALON_ID, appointmentId: "apt-0", amount: 27000, kind: "full", method: "Efectivo", simulated: true },
+      { id: "pay-1", salonId: SALON_ID, appointmentId: "apt-1", amount: 41600, kind: "full", method: "Mercado Pago (prueba)", simulated: true },
+    ],
+    invoices: [
+      {
+        id: "inv-0",
+        salonId: SALON_ID,
+        appointmentId: "apt-1",
+        paymentId: "pay-1",
+        type: "C",
+        pointOfSale: "0001",
+        number: "00000012",
+        cae: "74128830559211",
+        caeExpiresAt: dayAt(now, 10),
+        customerName: "Consumidor final",
+        customerDoc: "",
+        total: 53000,
+        createdAt: now.toISOString(),
+        simulated: true,
+      },
+    ],
   };
 }

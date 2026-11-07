@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { formatDayShort } from "@/lib/format";
 
@@ -11,6 +12,8 @@ interface SlotPickerProps {
   slot: string | null;
   onSlotChange: (slot: string) => void;
   emptyHint?: string;
+  /** Reemplaza el aviso simple cuando no hay horarios (ej. estado vacío con acciones) */
+  emptySlot?: ReactNode;
 }
 
 function parseDay(day: string): Date {
@@ -53,11 +56,13 @@ export function DayStrip({ days, day, onDayChange }: DayStripProps) {
 }
 
 /** Tira de días + horarios libres */
-export function SlotPicker({ days, day, onDayChange, slots, slot, onSlotChange, emptyHint }: SlotPickerProps) {
+export function SlotPicker({ days, day, onDayChange, slots, slot, onSlotChange, emptyHint, emptySlot }: SlotPickerProps) {
   return (
     <div className="flex flex-col gap-4">
       <DayStrip days={days} day={day} onDayChange={onDayChange} />
-      {slots.length === 0 ? (
+      {slots.length === 0 && emptySlot ? (
+        emptySlot
+      ) : slots.length === 0 ? (
         <p className="rounded-card bg-sunken p-4 text-sm text-muted-foreground">
           {emptyHint ?? "No quedan horarios libres este día. Probá con otro día."}
         </p>

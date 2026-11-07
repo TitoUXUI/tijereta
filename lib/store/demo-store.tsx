@@ -14,6 +14,7 @@ import {
 import { addMinutes, dayKey, normalizePhone } from "@/lib/format";
 import { buildReminder } from "@/lib/mocks/whatsapp";
 import { newOffer, type FreeSlot } from "@/lib/waitlist";
+import { POINT_OF_SALE, caeExpiry, fakeCae, invoiceNumber } from "@/lib/mocks/arca";
 import { adjustedPrice, snapshotCatalog, type AdjustDirection, type CatalogSnapshot } from "@/lib/services";
 import { SEED_VERSION, buildSeed } from "@/lib/seed";
 import { totalsFor } from "@/lib/scheduling";
@@ -25,6 +26,8 @@ import type {
   Client,
   CreatedBy,
   DemoState,
+  Invoice,
+  InvoiceType,
   MessageKind,
   Payment,
   Professional,
@@ -206,6 +209,10 @@ interface DemoContextValue {
   /** Sube o baja un porcentaje los servicios elegidos. Devuelve cómo estaba el catálogo, para deshacer. */
   adjustPrices: (serviceIds: string[], percent: number, direction: AdjustDirection, round: boolean) => CatalogSnapshot;
   restoreCatalog: (snapshot: CatalogSnapshot) => void;
+  /** Registra el cobro de un turno (sin pasarela real) */
+  chargeAppointment: (appointmentId: string, method: string, amount: number) => Payment;
+  /** Emite un comprobante SIMULADO para un cobro */
+  issueInvoice: (paymentId: string, input: { type: InvoiceType; customerName: string; customerDoc: string }) => Invoice | null;
   /** Cambia el precio de un servicio o de una variante */
   updateServicePrice: (serviceId: string, variantId: string | null, price: number) => void;
   bookFromWaitlist: (entryId: string, professionalId: string, startsAt: string) => Appointment | null;
@@ -303,6 +310,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         waitlist: [],
         reminders: [],
         payments: [],
+        invoices: [],
       },
     });
   }, []);
@@ -518,6 +526,38 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const chargeAppointment = useCallback((appointmentId: string, method: string, amount: number): Payment => {
+    const st = stateRef.current;
+    const payment: Payment = { id: uid("pay"), salonId: st.salon.id, appointmentId, amount, kind: "full", method, simulated: true };
+    dispatch({ type: "addPayment", payment });
+    dispatch({ type: "updateAppointment", id: appointmentId, patch: { status: "done" } });
+    return payment;
+  }, []);
+
+  const issueInvoice = useCallback((paymentId: string, input: { type: InvoiceType; customerName: string; customerDoc: string }): Invoice | null => {
+    const st = stateRef.current;
+    const payment = st.payments.find((p) => p.id === paymentId);
+    if (!payment) return null;
+    const invoice: Invoice = {
+      id: uid("inv"),
+      salonId: st.salon.id,
+      appointmentId: payment.appointmentId,
+      paymentId,
+      type: input.type,
+      pointOfSale: POINT_OF_SALE,
+      number: invoiceNumber(st.invoices.length + 12),
+      cae: fakeCae(),
+      caeExpiresAt: caeExpiry(),
+      customerName: input.customerName.trim() || "Consumidor final",
+      customerDoc: input.customerDoc.trim(),
+      total: payment.amount + (st.appointments.find((a) => a.id === payment.appointmentId)?.depositPaid ?? 0),
+      createdAt: new Date().toISOString(),
+      simulated: true,
+    };
+    dispatch({ type: "patch", patch: { invoices: [...st.invoices, invoice] } });
+    return invoice;
+  }, []);
+
   const saveService = useCallback((input: ServiceFormInput): Service => {
     const st = stateRef.current;
     const id = input.id ?? uid("svc");
@@ -649,6 +689,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       renewOffer,
       skipOffer,
       expireOfferNow,
+      chargeAppointment,
+      issueInvoice,
       saveService,
       adjustPrices,
       restoreCatalog,
@@ -676,6 +718,8 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       renewOffer,
       skipOffer,
       expireOfferNow,
+      chargeAppointment,
+      issueInvoice,
       saveService,
       adjustPrices,
       restoreCatalog,

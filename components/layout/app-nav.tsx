@@ -8,6 +8,7 @@ import {
   Hourglass,
   Percent,
   Tag,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function navFor(role: Role): NavItem[] {
     base.push({ href: "/servicios", label: "Servicios", icon: Tag });
     base.push({ href: "/margen", label: "Margen", icon: Percent });
   }
+  base.push({ href: "/caja", label: "Caja", icon: Wallet });
   return base;
 }
 
@@ -86,13 +88,13 @@ export function AppNav({ role }: { role: Role }) {
               href={item.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors duration-base ease-out",
+                "flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors duration-base ease-out",
                 active ? "text-accent-foreground" : "text-muted-foreground",
               )}
             >
               <span
                 className={cn(
-                  "flex h-7 w-14 items-center justify-center rounded-full",
+                  "flex h-7 w-12 items-center justify-center rounded-full",
                   active && "bg-accent",
                 )}
               >

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PolicyNotice } from "@/components/booking/policy-notice";
 import { SlotPicker } from "@/components/booking/slot-picker";
 import { EmptyState } from "@/components/layout/empty-state";
+import { Wordmark } from "@/components/layout/wordmark";
 import { HeroBand } from "@/components/layout/hero-band";
 import { Button } from "@/components/ui/button";
 import { formatDayLong, formatTime, toISO } from "@/lib/format";
@@ -37,9 +38,16 @@ export function RescheduleFlow({ token }: { token: string }) {
   }
   if (!appointment) {
     return (
-      <div className="mx-auto max-w-md p-4 pt-16">
-        <EmptyState icon={SearchX} text="No encontramos este turno. Revisá que el link esté completo." />
-      </div>
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-4">
+        <Wordmark className="text-brand" />
+        <EmptyState
+          illustration="turno-perdido"
+          icon={SearchX}
+          title="No encontramos este turno"
+          text="Puede que el link esté incompleto o que el turno ya no exista. Si lo necesitás, reservá uno nuevo."
+          action={<Button asChild className="h-14 text-base font-semibold"><Link href={`/reservar/${state.salon.slug}`}>Reservar un turno nuevo</Link></Button>}
+        />
+      </main>
     );
   }
 

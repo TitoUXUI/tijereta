@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronRight, Lock, Percent, Plus } from "lucide-react";
+import { ChevronRight, Lock, Percent, Plus, Tags } from "lucide-react";
+import { toast } from "sonner";
 import { EmptyState } from "@/components/layout/empty-state";
 import { HeroBand } from "@/components/layout/hero-band";
 import { ServiceFormSheet } from "@/components/services/service-form-sheet";
@@ -12,8 +13,14 @@ import { serviceMeta, variantsOf } from "@/lib/services";
 import { useDemo } from "@/lib/store/demo-store";
 import type { Service } from "@/types";
 
+const EXAMPLE_SERVICES = [
+  { name: "Corte", baseDurationMin: 45, price: 18000 },
+  { name: "Barba", baseDurationMin: 30, price: 9000 },
+  { name: "Color", baseDurationMin: 90, price: 38000 },
+];
+
 export default function ServiciosPage() {
-  const { state } = useDemo();
+  const { state, saveService } = useDemo();
   const [editing, setEditing] = useState<Service | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -26,6 +33,13 @@ export default function ServiciosPage() {
   }
 
   const withVariants = state.services.filter((s) => variantsOf(state, s.id).length > 0).length;
+
+  function addExamples() {
+    for (const e of EXAMPLE_SERVICES) {
+      saveService({ ...e, requiresDeposit: false, depositPercent: 0, variants: [], suppliesCost: null });
+    }
+    toast.success("Sumamos tres servicios de ejemplo: ajustá los precios cuando quieras");
+  }
 
   return (
     <>
@@ -63,6 +77,25 @@ export default function ServiciosPage() {
         <div className="hidden grid-cols-[minmax(0,1fr)_110px_90px_240px_110px_20px] gap-6 border-b border-subtle px-0 pb-2 text-sm font-medium text-muted-foreground lg:grid" aria-hidden>
           <span>Servicio</span><span>Duración</span><span>Seña</span><span>Variantes</span><span className="text-right">Precio</span><span />
         </div>
+
+        {state.services.length === 0 ? (
+          <EmptyState
+            illustration="precios"
+            icon={Tags}
+            title="Cargá tus servicios"
+            text="Sin servicios, tus clientes no pueden reservar. Podés empezar con los más comunes y ajustar los precios."
+            action={
+              <Button type="button" className="h-14 text-base font-semibold" leadingIcon={Plus} onClick={() => setCreating(true)}>
+                Agregar servicio
+              </Button>
+            }
+            secondary={
+              <Button type="button" variant="ghost" className="h-12" onClick={addExamples}>
+                Usar servicios de ejemplo
+              </Button>
+            }
+          />
+        ) : null}
 
         <ul className="mt-2 divide-y divide-border lg:mt-0">
           {state.services.map((service) => (

@@ -2,28 +2,31 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowLeft, CalendarCheck } from "lucide-react";
+import { ArrowLeft, CalendarCheck, CalendarX2, Clock, CreditCard, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { ServiceCombinePicker } from "@/components/appointments/service-combine-picker";
-import { DemoNotice, DepositNotice, PolicyNotice } from "@/components/booking/policy-notice";
+import { DepositNotice, PolicyNotice } from "@/components/booking/policy-notice";
 import { SlotPicker } from "@/components/booking/slot-picker";
 import { TotalBar } from "@/components/booking/total-bar";
+import { EmptyState } from "@/components/layout/empty-state";
 import { HeroBand } from "@/components/layout/hero-band";
+import { Tabs, TabsItem } from "@/components/ui/tabs";
+import { Banner, BannerDescription, BannerTitle } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatARS, formatDayLong, formatDayShort, formatDuration, toISO } from "@/lib/format";
-import { simulateDepositPayment } from "@/lib/mocks/mercado-pago";
+import { PAYMENT_METHODS, simulateDepositPayment, type PaymentMethodId, type PaymentOutcome } from "@/lib/mocks/mercado-pago";
 import { firstAvailableProfessional, freeSlots, slotsForAny, totalsFor, upcomingDays } from "@/lib/scheduling";
 import { useDemo } from "@/lib/store/demo-store";
 import { cn } from "@/lib/utils";
 import type { Appointment, ServiceSelection } from "@/types";
 
-type Step = "services" | "when" | "pay" | "done";
+type Step = "services" | "when" | "pay" | "gateway" | "pending" | "rejected" | "done";
 const ANY = "any";
 
 export function BookingFlow() {
-  const { state, createAppointment, setStatus, recordDeposit } = useDemo();
+  const { state, createAppointment, setStatus, recordDeposit, addToWaitlist } = useDemo();
   const days = useMemo(() => upcomingDays(10), []);
   const [step, setStep] = useState<Step>("services");
   const [selections, setSelections] = useState<ServiceSelection[]>([]);
@@ -35,6 +38,8 @@ export function BookingFlow() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [paying, setPaying] = useState(false);
   const [booked, setBooked] = useState<Appointment | null>(null);
+  const [method, setMethod] = useState<PaymentMethodId>("balance");
+  const [outcome, setOutcome] = useState<PaymentOutcome>("approved");
 
   const totals = totalsFor(selections, state.services, state.variants);
   const hasDeposit = totals.depositAmount > 0;
@@ -70,7 +75,12 @@ export function BookingFlow() {
     }
     setPaying(true);
     try {
-      const payment = withDeposit ? await simulateDepositPayment() : null;
+      const payment = withDeposit ? await simulateDepositPayment(outcome, method) : null;
+      if (payment?.status === "rejected") {
+        // No se crea el turno: la persona puede probar de nuevo o con otro medio
+        setStep("rejected");
+        return;
+      }
       const appointment = createAppointment({
         clientName: name,
         clientPhone: phone,
@@ -80,13 +90,38 @@ export function BookingFlow() {
         channel: "link",
         createdBy: "client",
       });
+      setBooked(appointment);
+      if (payment?.status === "pending") {
+        // El lugar queda reservado como "por confirmar" hasta que se acredite el pago
+        setStep("pending");
+        return;
+      }
       if (payment) recordDeposit(appointment.id, totals.depositAmount, payment.method);
       else setStatus(appointment.id, "confirmed");
-      setBooked(appointment);
       setStep("done");
     } finally {
       setPaying(false);
     }
+  }
+
+  /** Sin horarios ese día: anotarse en la lista de espera con los datos ya cargados */
+  function joinWaitlist() {
+    const next: Record<string, string> = {};
+    if (!name.trim()) next.name = "Escribí tu nombre.";
+    if (phone.replace(/\D/g, "").length < 8) next.phone = "Revisá tu teléfono: faltan números.";
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+    const first = selections[0];
+    if (!first) return;
+    addToWaitlist({
+      clientName: name,
+      clientPhone: phone,
+      serviceId: first.serviceId,
+      preferredDay: day,
+      preferredFrom: `${String(state.salon.openHour).padStart(2, "0")}:00`,
+      preferredTo: `${String(state.salon.closeHour).padStart(2, "0")}:00`,
+    });
+    toast.success("Listo, te anotamos. Si se libera un lugar, el salón te avisa.");
   }
 
   const proName = (id: string | undefined) => state.professionals.find((p) => p.id === id)?.name;
@@ -135,6 +170,104 @@ export function BookingFlow() {
     );
   }
 
+  if (step === "gateway") {
+    return (
+      <main className="mx-auto flex min-h-screen w-full max-w-md flex-col gap-5 px-4 py-6">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold">Pasarela de pago</h1>
+          <span className="rounded-tag bg-warning-bg px-2 py-1 text-xs font-semibold text-warning-fg">SIMULADO</span>
+        </div>
+        <div>
+          <p className="text-base text-muted-foreground">Vas a pagar a {state.salon.name}</p>
+          <p className="font-display text-[32px] font-black leading-10">{formatARS(totals.depositAmount)}</p>
+        </div>
+        <section aria-labelledby="gw-methods" className="flex flex-col gap-1">
+          <h2 id="gw-methods" className="text-xl font-semibold">Elegí cómo pagar</h2>
+          <ul className="divide-y divide-border" role="radiogroup" aria-label="Medio de pago">
+            {PAYMENT_METHODS.map((m) => (
+              <li key={m.id}>
+                <button type="button" role="radio" aria-checked={method === m.id} onClick={() => setMethod(m.id)} className="flex min-h-touch w-full items-center gap-3 py-3 text-left">
+                  <span className={cn("flex size-[22px] shrink-0 items-center justify-center rounded-full border-[1.5px]", method === m.id ? "border-primary bg-primary" : "border-input")} aria-hidden>
+                    {method === m.id ? <span className="size-2 rounded-full bg-primary-foreground" /> : null}
+                  </span>
+                  <span>
+                    <span className="block text-base font-semibold">{m.label}</span>
+                    <span className="block text-sm text-muted-foreground">{m.detail}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-muted-foreground">Resultado de la prueba</p>
+          <Tabs selectedIndex={outcome === "approved" ? 0 : outcome === "pending" ? 1 : 2} onSelect={(i) => setOutcome(i === 0 ? "approved" : i === 1 ? "pending" : "rejected")} aria-label="Resultado de la prueba">
+            <TabsItem index={0} label="Aprobado" />
+            <TabsItem index={1} label="Pendiente" />
+            <TabsItem index={2} label="Rechazado" />
+          </Tabs>
+        </div>
+        <div className="mt-auto flex flex-col gap-2">
+          <Button type="button" className="h-14 text-base font-semibold" loading={paying} disabled={paying} onClick={() => void confirm(true)}>
+            {paying ? "Procesando…" : `Pagar ${formatARS(totals.depositAmount)}`}
+          </Button>
+          <Button type="button" variant="ghost" className="h-12" onClick={() => setStep("pay")}>Volver al salón</Button>
+        </div>
+      </main>
+    );
+  }
+
+  if (step === "pending" && booked) {
+    return (
+      <>
+        <HeroBand tone="highlight" contained eyebrow={state.salon.name} title="Estamos esperando el pago">
+          <p className="text-base">Tu turno está reservado</p>
+        </HeroBand>
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-4 px-4 py-6 md:py-10">
+          <Banner status="warning" contrast="high">
+            <BannerTitle>Tu lugar está guardado 30 minutos</BannerTitle>
+            <BannerDescription>Apenas se acredite el pago, confirmamos el turno. Si no se acredita, el horario se libera.</BannerDescription>
+          </Banner>
+          <EmptyState
+            illustration="reloj"
+            icon={Clock}
+            compact
+            title="Pago pendiente"
+            text="Algunos medios tardan en acreditarse. No hace falta que pagues de nuevo."
+            action={<Button asChild className="h-14 text-base font-semibold"><Link href={`/turno/${booked.manageToken}`}>Ver mi turno</Link></Button>}
+            secondary={<Button type="button" variant="ghost" className="h-12" onClick={() => setStep("gateway")}>Probar con otro medio</Button>}
+          />
+        </div>
+      </>
+    );
+  }
+
+  if (step === "rejected") {
+    return (
+      <>
+        <HeroBand tone="highlight" contained eyebrow={state.salon.name} title="No se pudo cobrar">
+          <p className="text-base">Tu turno todavía no se perdió</p>
+        </HeroBand>
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-4 px-4 py-6 md:py-10">
+          <Banner status="error" contrast="high">
+            <BannerTitle>El pago no se procesó</BannerTitle>
+            <BannerDescription>No te cobramos nada. Tenés 30 minutos para intentarlo de nuevo.</BannerDescription>
+          </Banner>
+          <EmptyState
+            illustration="tarjeta-rechazada"
+            icon={CreditCard}
+            compact
+            title="Probemos de nuevo"
+            text="A veces es un tema de la tarjeta o del saldo. Podés usar otro medio."
+            action={<Button type="button" className="h-14 text-base font-semibold" onClick={() => { setOutcome("approved"); setStep("gateway"); }}>Probar de nuevo</Button>}
+            secondary={<Button type="button" variant="secondary" className="h-12" onClick={() => setStep("gateway")}>Elegir otro medio</Button>}
+          />
+          <Button type="button" variant="ghost" className="h-12" onClick={() => setStep("when")}>Hablar con el salón</Button>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <HeroBand
@@ -171,7 +304,25 @@ export function BookingFlow() {
             <button type="button" onClick={() => setStep("services")} className="flex min-h-touch items-center gap-1 self-start text-sm font-medium text-link">
               <ArrowLeft className="size-4" aria-hidden />Cambiar servicios
             </button>
-            <SlotPicker days={days} day={day} onDayChange={(d) => { setDay(d); setSlot(null); }} slots={slots} slot={slot} onSlotChange={setSlot} />
+            <SlotPicker
+              days={days}
+              day={day}
+              onDayChange={(d) => { setDay(d); setSlot(null); }}
+              slots={slots}
+              slot={slot}
+              onSlotChange={setSlot}
+              emptySlot={
+                <EmptyState
+                  illustration="agenda-llena"
+                  icon={CalendarX2}
+                  compact
+                  title="Ese día no quedan horarios"
+                  text="Probá con otro día o anotate en la lista de espera: si se libera un lugar, el salón te avisa."
+                  action={<Button type="button" className="h-12" onClick={joinWaitlist}>Anotarme en la lista de espera</Button>}
+                  secondary={<Button type="button" variant="ghost" className="h-11" onClick={() => { const i = days.indexOf(day); setDay(days[Math.min(i + 1, days.length - 1)]); setSlot(null); }}>Elegir otro día</Button>}
+                />
+              }
+            />
             {errors.slot ? <p className="text-sm text-danger-fg">{errors.slot}</p> : null}
 
             <div className="flex flex-col gap-2">
@@ -199,14 +350,29 @@ export function BookingFlow() {
             <button type="button" onClick={() => setStep("when")} className="flex min-h-touch items-center gap-1 self-start text-sm font-medium text-link">
               <ArrowLeft className="size-4" aria-hidden />Volver
             </button>
-            <div className="rounded-card border border-subtle bg-surface p-4">
-              <p className="text-sm text-muted-foreground">Seña a pagar</p>
-              <p className="text-3xl font-bold">{formatARS(totals.depositAmount)}</p>
-              <p className="mt-1 text-sm text-muted-foreground">Del total de {formatARS(totals.price)}</p>
-            </div>
-            <DemoNotice>Esta pantalla simula Mercado Pago. No se cobra nada ni se piden datos de tarjeta.</DemoNotice>
-            <Button loading={paying} type="button" className="h-14 text-base font-semibold" disabled={paying} onClick={() => void confirm(true)}>
-              {paying ? "Procesando…" : "Pagar seña (simulado)"}
+            <ul className="divide-y divide-border">
+              {lines.map((l) => (
+                <li key={l.key} className="flex items-center justify-between gap-3 py-3 text-base">
+                  <span className="text-muted-foreground">{l.name}</span>
+                  <span className="font-semibold">{formatARS(l.price)}</span>
+                </li>
+              ))}
+              <li className="flex items-center justify-between gap-3 py-3 text-base">
+                <span className="text-muted-foreground">Seña · se paga ahora</span>
+                <span className="font-semibold">{formatARS(totals.depositAmount)}</span>
+              </li>
+              <li className="flex items-center justify-between gap-3 py-3 text-base">
+                <span className="text-muted-foreground">El resto, en el salón</span>
+                <span className="font-semibold">{formatARS(totals.price - totals.depositAmount)}</span>
+              </li>
+            </ul>
+            <Banner status="warning" contrast="high">
+              <BannerTitle>Modo demo</BannerTitle>
+              <BannerDescription>Vas a una pantalla de prueba de Mercado Pago. No se cobra nada ni se piden datos reales.</BannerDescription>
+            </Banner>
+            <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
+            <Button type="button" className="h-14 text-base font-semibold" leadingIcon={ExternalLink} onClick={() => setStep("gateway")}>
+              Ir a Mercado Pago
             </Button>
           </>
         ) : null}

@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { CalendarOff } from "lucide-react";
 import { QuickBookingSheet } from "@/components/appointments/quick-booking-sheet";
+import { EmptyState } from "@/components/layout/empty-state";
+import { Button } from "@/components/ui/button";
 import { AppointmentDetailSheet } from "@/components/appointments/appointment-detail-sheet";
 import { DayStrip } from "@/components/booking/slot-picker";
 import { addMinutes, dayKey, formatTime } from "@/lib/format";
@@ -51,6 +54,53 @@ export function TeamAgenda({ onlyProfessionalId, allowAddService = false, fixedD
 
   function rowOf(iso: string): number {
     return Math.floor((minutesOfDay(iso) - openHour * 60) / ROW_MIN) + 1;
+  }
+
+  const hasTurnos = pros.some((p) =>
+    state.appointments.some(
+      (a) => a.professionalId === p.id && dayKey(a.startsAt) === day && a.status !== "cancelled" && a.status !== "rescheduled",
+    ),
+  );
+  const nextDay = days[Math.min(days.indexOf(day) + 1, days.length - 1)];
+
+  if (!hasTurnos) {
+    return (
+      <div className="flex flex-col gap-4">
+        {fixedDay ? null : <DayStrip days={days} day={day} onDayChange={setDay} />}
+        <EmptyState
+          illustration="dia-libre"
+          icon={CalendarOff}
+          title={onlyProfessionalId ? "No tenés turnos este día" : "Este día está libre"}
+          text={
+            onlyProfessionalId
+              ? "Cuando te asignen uno lo vas a ver acá. Mientras tanto, mirá el día siguiente."
+              : "No hay turnos cargados. Cargá uno o compartí tu link para que reserven."
+          }
+          action={
+            onlyProfessionalId ? (
+              !fixedDay && nextDay !== day ? (
+                <Button type="button" className="h-14 text-base font-semibold" onClick={() => setDay(nextDay)}>Ver el día siguiente</Button>
+              ) : undefined
+            ) : (
+              <Button
+                type="button"
+                className="h-14 text-base font-semibold"
+                onClick={() => setQuick({ professionalId: pros[0]?.id ?? "", slot: `${String(openHour + 1).padStart(2, "0")}:00` })}
+              >
+                Cargar un turno
+              </Button>
+            )
+          }
+        />
+        <QuickBookingSheet
+          open={quick !== null}
+          onOpenChange={(o) => !o && setQuick(null)}
+          initialProfessionalId={quick?.professionalId}
+          initialDay={day}
+          initialSlot={quick?.slot}
+        />
+      </div>
+    );
   }
 
   return (

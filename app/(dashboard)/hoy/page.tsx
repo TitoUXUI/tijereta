@@ -6,7 +6,7 @@ import { CalendarX2, Hourglass } from "lucide-react";
 import { AppointmentCard } from "@/components/appointments/appointment-card";
 import { DelayBanner } from "@/components/appointments/delay-banner";
 import { NewAppointmentButton } from "@/components/appointments/new-appointment-button";
-import { ShareBookingLink } from "@/components/appointments/share-booking-link";
+import { CopyBookingMessageButton, ShareBookingLink } from "@/components/appointments/share-booking-link";
 import { TeamAgenda } from "@/components/appointments/team-agenda";
 import { EmptyState } from "@/components/layout/empty-state";
 import { HeroBand } from "@/components/layout/hero-band";
@@ -83,7 +83,14 @@ export default function HoyPage() {
             <section aria-labelledby="hoy-turnos" className="flex flex-col gap-3 lg:col-start-1 lg:row-span-3 lg:row-start-1">
               <h2 id="hoy-turnos" className="text-xl font-semibold lg:sr-only">Turnos de hoy</h2>
               {todays.length === 0 ? (
-                <EmptyState icon={CalendarX2} text="Todavía no cargaste turnos. Compartí tu link y empezá a recibirlos." />
+                <EmptyState
+                  illustration="calendario-vacio"
+                  icon={CalendarX2}
+                  title="Hoy no hay turnos"
+                  text="Compartí tu link en el chat y los turnos empiezan a llegar a esta agenda."
+                  action={<CopyBookingMessageButton salon={state.salon} />}
+                  secondary={<NewAppointmentButton label="Cargar un turno" variant="ghost" className="h-12 w-full gap-2 text-base" />}
+                />
               ) : (
                 <ul className="divide-y divide-border">
                   {todays.map((a) => (

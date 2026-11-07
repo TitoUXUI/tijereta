@@ -144,6 +144,26 @@ export interface Reminder {
   createdAt: string;
 }
 
+export type InvoiceType = "A" | "B" | "C";
+
+/** Comprobante SIMULADO: el CAE es ficticio y no tiene validez fiscal */
+export interface Invoice {
+  id: string;
+  salonId: string;
+  appointmentId: string;
+  paymentId: string;
+  type: InvoiceType;
+  pointOfSale: string;
+  number: string;
+  cae: string;
+  caeExpiresAt: string;
+  customerName: string;
+  customerDoc: string;
+  total: number;
+  createdAt: string;
+  simulated: true;
+}
+
 export interface Payment {
   id: string;
   salonId: string;
@@ -177,4 +197,5 @@ export interface DemoState {
   waitlist: WaitlistEntry[];
   reminders: Reminder[];
   payments: Payment[];
+  invoices: Invoice[];
 }

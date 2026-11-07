@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Hourglass, MessageCircle, Plus, RotateCcw, Undo2 } from "lucide-react";
+import Link from "next/link";
+import { CalendarX2, Hourglass, MessageCircle, Plus, RotateCcw, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { PreparedMessageSheet } from "@/components/appointments/prepared-message-dialog";
 import { DayStrip } from "@/components/booking/slot-picker";
@@ -109,7 +110,14 @@ export function WaitlistPanel() {
         </section>
       ) : (
         <div className="lg:col-start-1 lg:row-start-1">
-          <EmptyState icon={Hourglass} text="No hay horarios libres para ofrecer por ahora." />
+          <EmptyState
+            illustration="agenda-llena"
+            icon={CalendarX2}
+            compact
+            title="No hay horarios libres ahora"
+            text="Cuando se cancele un turno o se libere un hueco, te lo mostramos acá para ofrecerlo."
+            secondary={<Button asChild variant="ghost" className="h-12"><Link href="/agenda">Ver la agenda</Link></Button>}
+          />
         </div>
       )}
 
@@ -126,7 +134,13 @@ export function WaitlistPanel() {
 
       {tab === 0 ? (
         queue.length === 0 ? (
-          <EmptyState icon={Hourglass} text="Nadie espera un horario. Cuando alguien quiera un día lleno, sumalo acá." />
+          <EmptyState
+            illustration="esperando"
+            icon={Hourglass}
+            title="Nadie en la lista"
+            text="Cuando alguien quiera un día lleno, sumalo acá y te avisamos si se libera un lugar."
+            action={<Button type="button" className="h-14 text-base font-semibold" leadingIcon={Plus} onClick={() => setAdding(true)}>Sumar a la espera</Button>}
+          />
         ) : (
           <>
             <ul className="divide-y divide-border">
@@ -160,7 +174,14 @@ export function WaitlistPanel() {
           </>
         )
       ) : offered.length === 0 ? (
-        <EmptyState icon={MessageCircle} text="Todavía no ofreciste ningún horario." />
+        <EmptyState
+          illustration="mensajes"
+          icon={MessageCircle}
+          compact
+          title="Todavía no ofreciste ningún horario"
+          text="Elegí a quién ofrecerle el horario libre desde la pestaña En espera."
+          action={<Button type="button" className="h-12" onClick={() => setTab(0)}>Ir a En espera</Button>}
+        />
       ) : (
         <ul className="flex flex-col gap-4">
           {offered.map((entry) => {
