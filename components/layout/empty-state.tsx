@@ -46,14 +46,23 @@ export function EmptyState({ icon: Icon, text, title, action, secondary, illustr
   return (
     <div className={cn("mx-auto flex w-full max-w-md flex-col items-center gap-4 text-center", compact ? "py-4" : "py-8", className)}>
       {showIllustration ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={`/illustrations/${illustration}.png`}
-          alt=""
-          aria-hidden
-          onError={() => setMissing(true)}
-          className={cn("h-auto w-auto max-w-full object-contain", compact ? "max-h-32" : "max-h-48")}
-        />
+        <>
+          {(["", "-dark"] as const).map((suffix) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={suffix}
+              src={`/illustrations/${illustration}${suffix}.png`}
+              alt=""
+              aria-hidden
+              onError={() => setMissing(true)}
+              className={cn(
+                "h-auto w-auto max-w-full object-contain",
+                compact ? "max-h-32" : "max-h-48",
+                suffix === "" ? "dark:hidden" : "hidden dark:block",
+              )}
+            />
+          ))}
+        </>
       ) : (
         <span className={cn("flex items-center justify-center rounded-full bg-accent text-accent-foreground", compact ? "size-14" : "size-20")}>
           <Icon className={compact ? "size-6" : "size-8"} aria-hidden />

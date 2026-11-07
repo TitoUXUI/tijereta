@@ -6,6 +6,7 @@ import { CalendarClock, CalendarX2, Loader2, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/appointments/status-badge";
 import { DepositNotice, PolicyNotice } from "@/components/booking/policy-notice";
+import { ReviewPrompt } from "@/components/booking/review-prompt";
 import { EmptyState } from "@/components/layout/empty-state";
 import { Wordmark } from "@/components/layout/wordmark";
 import { HeroBand } from "@/components/layout/hero-band";
@@ -83,10 +84,9 @@ export function ManageAppointment({ token }: { token: string }) {
         ) : null}
         <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
 
-        {closed && appointment.status !== "cancelled" ? (
-          <p className="text-sm text-muted-foreground">Este turno ya pasó. ¡Gracias por venir! Cuando quieras, reservá otro.</p>
-        ) : null}
-        {closed ? (
+        {appointment.status === "done" ? (
+          <ReviewPrompt salonName={state.salon.name} bookingHref={`/reservar/${state.salon.slug}`} />
+        ) : closed ? (
           <Button asChild className="h-14 text-base font-semibold">
             <Link href={`/reservar/${state.salon.slug}`}>Reservar otro turno</Link>
           </Button>
