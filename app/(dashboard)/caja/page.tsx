@@ -55,8 +55,8 @@ export default function CajaPage() {
           <EmptyState
             illustration="caja-vacia"
             icon={Wallet}
-            title="Hoy todavía no cobraste nada"
-            text="Cuando termines un turno, lo cobrás desde acá y la caja se arma sola."
+            title="Tu caja está lista"
+            text="Cada turno que termines se suma acá y ves el total del día sin hacer cuentas."
             action={<Button asChild className="h-14 text-base font-semibold"><Link href="/hoy">Ver los turnos de hoy</Link></Button>}
           />
         ) : (
