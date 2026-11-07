@@ -120,7 +120,7 @@ export function OnboardingFlow() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[560px] flex-col">
       <Wordmark className="hidden px-6 pt-8 text-brand md:block" />
-      <div className="flex flex-1 flex-col gap-5 px-6 pb-4 pt-6">
+      <div className="flex flex-1 flex-col gap-7 px-6 pb-6 pt-6">
         <h1 className="text-[28px] font-bold leading-8">{TITLE[step]}</h1>
 
         <div className="flex items-start gap-3 rounded-sheet border border-subtle bg-surface p-4">
@@ -142,7 +142,7 @@ export function OnboardingFlow() {
             </div>
             <div role="group" aria-label="Tipo de salón" className="flex flex-col gap-2">
               <p className="text-sm font-medium">¿Qué tipo de salón es?</p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {TYPES.map((t) => (
                   <button key={t.value} type="button" aria-pressed={type === t.value} onClick={() => setType(t.value)} className={chipClass(type === t.value)}>
                     {t.label}
@@ -155,7 +155,7 @@ export function OnboardingFlow() {
 
         {step === "services" ? (
           <>
-            <div role="group" aria-label="Servicios" className="flex flex-wrap gap-2">
+            <div role="group" aria-label="Servicios" className="flex flex-wrap gap-3">
               {SUGGESTED.map((label) => (
                 <button key={label} type="button" aria-pressed={services.some((s) => s.key === label)} onClick={() => toggleSuggested(label)} className={chipClass(services.some((s) => s.key === label))}>
                   {label}
@@ -171,7 +171,7 @@ export function OnboardingFlow() {
             </div>
 
             {services.map((s) => (
-              <section key={s.key} aria-label={s.name || "Servicio nuevo"} className="flex flex-col gap-3 rounded-card border border-subtle bg-surface p-4">
+              <section key={s.key} aria-label={s.name || "Servicio nuevo"} className="flex flex-col gap-4 rounded-card border border-subtle bg-surface p-5">
                 <div className="flex items-center justify-between gap-2">
                   {s.custom ? (
                     <Input aria-label="Nombre del servicio" value={s.name} onChange={(e) => patchService(s.key, { name: e.target.value })} className="h-11" placeholder="Nombre del servicio" />
@@ -182,7 +182,7 @@ export function OnboardingFlow() {
                     <X className="size-4" aria-hidden />Quitar
                   </button>
                 </div>
-                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4">
                   <div className="flex min-w-0 flex-col gap-2">
                     <Label className="text-sm font-medium">Duración</Label>
                     <Select value={s.minutes} onValueChange={(v) => patchService(s.key, { minutes: v })}>
@@ -208,7 +208,7 @@ export function OnboardingFlow() {
         {step === "team" ? (
           <>
             {team.map((member, i) => (
-              <section key={i} aria-label={`Persona ${i + 1}`} className="flex flex-col gap-3 rounded-card border border-subtle bg-surface p-4">
+              <section key={i} aria-label={`Persona ${i + 1}`} className="flex flex-col gap-4 rounded-card border border-subtle bg-surface p-5">
                 <div className="flex items-center justify-between">
                   <p className="text-base font-bold">Persona {i + 1}</p>
                   {team.length > 1 ? (
@@ -217,7 +217,7 @@ export function OnboardingFlow() {
                     </button>
                   ) : null}
                 </div>
-                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4">
                   <div className="flex flex-col gap-2">
                     <Label htmlFor={`member-${i}`} className="text-sm font-medium">Nombre</Label>
                     <Input id={`member-${i}`} value={member.name} onChange={(e) => setTeam(team.map((t, n) => (n === i ? { ...t, name: e.target.value } : t)))} className="h-12" placeholder="Nombre" />
