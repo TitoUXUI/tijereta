@@ -48,11 +48,11 @@ export function EmptyState({ icon: Icon, text, title, action, secondary, illustr
       {showIllustration ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={`/illustrations/${illustration}.svg`}
+          src={`/illustrations/${illustration}.png`}
           alt=""
           aria-hidden
           onError={() => setMissing(true)}
-          className={cn("h-auto w-full", compact ? "max-w-[180px]" : "max-w-60")}
+          className={cn("h-auto w-auto max-w-full object-contain", compact ? "max-h-32" : "max-h-48")}
         />
       ) : (
         <span className={cn("flex items-center justify-center rounded-full bg-accent text-accent-foreground", compact ? "size-14" : "size-20")}>
