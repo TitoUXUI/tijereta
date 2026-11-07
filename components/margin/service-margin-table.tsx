@@ -73,7 +73,8 @@ export function ServiceMarginTable({ rows, averageCommission }: ServiceMarginTab
   const chartData = rows.map((r) => ({ name: rowName(r), margin: r.margin, level: r.level }));
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-x-10">
+      <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-1">
       {loss.length > 0 ? (
         <section aria-labelledby="mg-loss">
           <h2 id="mg-loss" className="text-xl font-semibold">
@@ -103,7 +104,9 @@ export function ServiceMarginTable({ rows, averageCommission }: ServiceMarginTab
         </section>
       ) : null}
 
-      <section aria-labelledby="mg-chart">
+      </div>
+
+      <section aria-labelledby="mg-chart" className="lg:col-start-2 lg:row-start-1 lg:rounded-card lg:border lg:border-subtle lg:bg-surface lg:p-6">
         <h2 id="mg-chart" className="text-xl font-semibold">Lo que te queda por servicio</h2>
         <p className="text-sm text-muted-foreground">Precio menos insumos y comisión promedio ({Math.round(averageCommission)}%).</p>
         <div className="mt-4 h-72 w-full" role="img" aria-label="Gráfico de barras con el margen en pesos de cada servicio">
@@ -112,7 +115,7 @@ export function ServiceMarginTable({ rows, averageCommission }: ServiceMarginTab
               <XAxis type="number" tickFormatter={(v: number) => `${Math.round(v / 1000)}k`} className="text-xs" />
               <YAxis type="category" dataKey="name" width={120} className="text-xs" />
               <Tooltip formatter={(v) => formatARS(Number(v))} cursor={false} />
-              <Bar dataKey="margin" radius={4}>
+              <Bar dataKey="margin" radius={4} isAnimationActive={false}>
                 {chartData.map((d) => (
                   <Cell key={d.name} className={FILL[d.level]} />
                 ))}

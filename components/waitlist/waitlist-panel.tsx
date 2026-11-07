@@ -93,10 +93,10 @@ export function WaitlistPanel() {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[380px_minmax(0,1fr)] lg:content-start lg:gap-x-10">
       {/* El horario libre manda: de acá sale a quién ofrecerle */}
       {slot ? (
-        <section aria-label="Horario libre" className="rounded-card bg-sunken p-4">
+        <section aria-label="Horario libre" className="rounded-card bg-sunken p-4 lg:col-start-1 lg:row-start-1 lg:p-6">
           <p className="text-sm font-medium text-muted-foreground">
             {slot.reason === "cancelled" ? "Se liberó un horario" : "Horario libre"}
           </p>
@@ -108,10 +108,13 @@ export function WaitlistPanel() {
           </p>
         </section>
       ) : (
-        <EmptyState icon={Hourglass} text="No hay horarios libres para ofrecer por ahora." />
+        <div className="lg:col-start-1 lg:row-start-1">
+          <EmptyState icon={Hourglass} text="No hay horarios libres para ofrecer por ahora." />
+        </div>
       )}
 
-      <Tabs selectedIndex={tab} onSelect={setTab} aria-label="Lista de espera">
+      <div className="flex flex-col gap-5 lg:col-start-2 lg:row-span-3 lg:row-start-1">
+      <Tabs selectedIndex={tab} onSelect={setTab} aria-label="Lista de espera" className="lg:w-72">
         <TabsItem index={0} label="En espera" />
         <TabsItem index={1} label="Ofrecidos" />
       </Tabs>
@@ -154,7 +157,6 @@ export function WaitlistPanel() {
                 );
               })}
             </ul>
-            <p className="text-xs text-tertiary">Ofrecele el horario a quien va primero. Si no responde, pasás a la siguiente persona.</p>
           </>
         )
       ) : offered.length === 0 ? (
@@ -216,8 +218,15 @@ export function WaitlistPanel() {
           })}
         </ul>
       )}
+      </div>
 
-      <Button type="button" variant="secondary" className="h-12" leadingIcon={Plus} onClick={() => setAdding(true)}>
+      {tab === 0 && queue.length > 0 ? (
+        <p className="text-sm text-muted-foreground lg:col-start-1 lg:row-start-2">
+          Ofrecele el horario a quien va primero. Si no responde en 15 minutos, pasás a la siguiente persona.
+        </p>
+      ) : null}
+
+      <Button type="button" variant="secondary" className="h-12 lg:col-start-1 lg:row-start-3" leadingIcon={Plus} onClick={() => setAdding(true)}>
         Sumar a la espera
       </Button>
 

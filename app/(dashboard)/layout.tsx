@@ -20,7 +20,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen pb-24 md:pb-0 md:pl-60">
       <AppNav role={state.role} />
       <DemoBar />
-      <main className="mx-auto w-full max-w-5xl">{children}</main>
+      <main className="w-full">{children}</main>
     </div>
   );
 }

@@ -17,7 +17,7 @@ export default function MiAgendaPage() {
 
   if (state.role !== "professional") {
     return (
-      <div className="p-4 pt-12 md:px-8">
+      <div className="p-4 pt-12 md:px-10">
         <EmptyState icon={Lock} text="Esta pantalla es para el equipo. Cambiá a “Profesional” arriba para verla." />
       </div>
     );
@@ -38,7 +38,7 @@ export default function MiAgendaPage() {
         </div>
       </HeroBand>
 
-      <div className="flex flex-col gap-4 px-4 py-6 md:px-8">
+      <div className="flex flex-col gap-4 px-4 py-6 md:px-10 md:py-8">
         <div role="tablist" aria-label="Mi agenda" className="flex gap-2">
           {(["agenda", "comisiones"] as const).map((t) => (
             <button key={t} role="tab" type="button" aria-selected={tab === t} onClick={() => setTab(t)}

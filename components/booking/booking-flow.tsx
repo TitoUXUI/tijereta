@@ -12,7 +12,7 @@ import { HeroBand } from "@/components/layout/hero-band";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatARS, formatDayLong, formatDuration, toISO } from "@/lib/format";
+import { formatARS, formatDayLong, formatDayShort, formatDuration, toISO } from "@/lib/format";
 import { simulateDepositPayment } from "@/lib/mocks/mercado-pago";
 import { firstAvailableProfessional, freeSlots, slotsForAny, totalsFor, upcomingDays } from "@/lib/scheduling";
 import { useDemo } from "@/lib/store/demo-store";
@@ -91,11 +91,34 @@ export function BookingFlow() {
 
   const proName = (id: string | undefined) => state.professionals.find((p) => p.id === id)?.name;
 
+  /** La acción principal del paso: va en la barra fija (celular) o en el resumen (escritorio) */
+  const action =
+    step === "services"
+      ? { label: "Ver horarios", disabled: selections.length === 0, loading: false, run: () => setStep("when") }
+      : step === "when"
+        ? {
+            label: hasDeposit ? "Seguir a la seña" : "Confirmar",
+            disabled: paying,
+            loading: paying,
+            run: () => {
+              if (!validateWhen()) return;
+              if (hasDeposit) setStep("pay");
+              else void confirm(false);
+            },
+          }
+        : null;
+  const lines = selections.flatMap((sel) => {
+    const service = state.services.find((x) => x.id === sel.serviceId);
+    const variant = state.variants.find((v) => v.id === sel.variantId);
+    if (!service) return [];
+    return [{ key: service.id, name: variant ? `${service.name} (${variant.name.toLowerCase()})` : service.name, price: service.price + (variant?.extraPrice ?? 0) }];
+  });
+
   if (step === "done" && booked) {
     return (
       <>
-        <HeroBand tone="highlight" eyebrow={state.salon.name} title="¡Listo, te esperamos!" />
-        <div className="flex flex-col gap-4 px-4 py-6">
+        <HeroBand tone="highlight" contained eyebrow={state.salon.name} title="¡Listo, te esperamos!" />
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-4 px-4 py-6 md:py-10">
           <div className="rounded-card border border-subtle bg-surface p-4">
             <p className="flex items-center gap-2 text-lg font-semibold"><CalendarCheck className="size-5 text-success-solid" aria-hidden />{formatDayLong(booked.startsAt)}</p>
             <p className="mt-1 text-base">{slot} hs · con {proName(booked.professionalId)}</p>
@@ -116,13 +139,15 @@ export function BookingFlow() {
     <>
       <HeroBand
         tone="highlight"
+        contained
         eyebrow={state.salon.name}
         title={step === "services" ? "¿Qué te vas a hacer?" : step === "when" ? "¿Cuándo venís?" : "Pagá la seña"}
       >
         <p className="text-sm">Paso {step === "services" ? 1 : step === "when" ? 2 : 3} de {totalSteps}</p>
       </HeroBand>
 
-      <div className="flex flex-col gap-5 px-4 pb-28 pt-6">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-28 pt-6 md:px-10 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-12 lg:pb-12 lg:pt-8">
+      <div className="flex min-w-0 flex-col gap-5">
         {step === "services" ? (
           <>
             <ServiceCombinePicker services={state.services} variants={state.variants} value={selections} showTotal={false} onChange={(v) => { setSelections(v); setSlot(null); }} />
@@ -138,11 +163,6 @@ export function BookingFlow() {
               </div>
             </div>
             <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
-            <TotalBar detail={selections.length === 0 ? "Elegí un servicio" : formatDuration(totals.durationMin)} total={selections.length === 0 ? "—" : formatARS(totals.price)}>
-              <Button type="button" className="h-12 px-6 text-base font-semibold" disabled={selections.length === 0} onClick={() => setStep("when")}>
-                Ver horarios
-              </Button>
-            </TotalBar>
           </>
         ) : null}
 
@@ -170,15 +190,7 @@ export function BookingFlow() {
 
             {hasDeposit ? <DepositNotice amount={totals.depositAmount} /> : null}
             <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
-            <TotalBar detail={`Total · ${formatDuration(totals.durationMin)}`} total={formatARS(totals.price)}>
-              <Button loading={paying} type="button" className="h-12 px-6 text-base font-semibold" disabled={paying} onClick={() => {
-                if (!validateWhen()) return;
-                if (hasDeposit) setStep("pay");
-                else void confirm(false);
-              }}>
-                {hasDeposit ? "Seguir a la seña" : "Confirmar"}
-              </Button>
-            </TotalBar>
+
           </>
         ) : null}
 
@@ -198,6 +210,52 @@ export function BookingFlow() {
             </Button>
           </>
         ) : null}
+      </div>
+
+      <aside aria-label="Resumen de tu turno" className="hidden lg:sticky lg:top-8 lg:block">
+        <div className="flex flex-col gap-4 rounded-card border border-subtle bg-surface p-6">
+          <h2 className="text-xl font-semibold">Tu turno</h2>
+          {lines.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Elegí uno o más servicios para ver el total.</p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {lines.map((l) => (
+                <li key={l.key} className="flex items-center justify-between gap-3 py-2 text-base">
+                  <span>{l.name}</span>
+                  <span className="text-muted-foreground">{formatARS(l.price)}</span>
+                </li>
+              ))}
+              {slot ? (
+                <li className="flex items-center justify-between gap-3 py-2 text-base">
+                  <span>{proName(professionalId === ANY ? firstAvailableProfessional(state, day, slot, totals.durationMin)?.id : professionalId) ?? "Cualquiera"}</span>
+                  <span className="text-muted-foreground">{formatDayShort(new Date(`${day}T12:00:00`))} {day.slice(8)} · {slot}</span>
+                </li>
+              ) : null}
+            </ul>
+          )}
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-base font-semibold">{lines.length > 0 ? `Total · ${formatDuration(totals.durationMin)}` : "Total"}</span>
+            <span className="text-xl font-semibold">{lines.length > 0 ? formatARS(totals.price) : "—"}</span>
+          </div>
+          {hasDeposit ? <DepositNotice amount={totals.depositAmount} /> : null}
+          <PolicyNotice cancelHoursBefore={state.salon.cancelHoursBefore} />
+          {action ? (
+            <Button type="button" className="h-14 text-base font-semibold" loading={action.loading} disabled={action.disabled} onClick={action.run}>
+              {action.label}
+            </Button>
+          ) : null}
+        </div>
+      </aside>
+
+      {action ? (
+        <div className="lg:hidden">
+          <TotalBar detail={lines.length === 0 ? "Elegí un servicio" : step === "when" ? `Total · ${formatDuration(totals.durationMin)}` : formatDuration(totals.durationMin)} total={lines.length === 0 ? "—" : formatARS(totals.price)}>
+            <Button type="button" className="h-12 px-6 text-base font-semibold" loading={action.loading} disabled={action.disabled} onClick={action.run}>
+              {action.label}
+            </Button>
+          </TotalBar>
+        </div>
+      ) : null}
       </div>
     </>
   );

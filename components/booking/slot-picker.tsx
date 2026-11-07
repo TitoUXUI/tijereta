@@ -62,7 +62,7 @@ export function SlotPicker({ days, day, onDayChange, slots, slot, onSlotChange, 
           {emptyHint ?? "No quedan horarios libres este día. Probá con otro día."}
         </p>
       ) : (
-        <div role="group" aria-label="Horario" className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        <div role="group" aria-label="Horario" className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
           {slots.map((s) => (
             <button
               key={s}

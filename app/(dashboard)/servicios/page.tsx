@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/layout/empty-state";
 import { HeroBand } from "@/components/layout/hero-band";
 import { ServiceFormSheet } from "@/components/services/service-form-sheet";
 import { Button } from "@/components/ui/button";
-import { formatARS } from "@/lib/format";
+import { formatARS, formatDuration } from "@/lib/format";
 import { serviceMeta, variantsOf } from "@/lib/services";
 import { useDemo } from "@/lib/store/demo-store";
 import type { Service } from "@/types";
@@ -29,34 +29,59 @@ export default function ServiciosPage() {
 
   return (
     <>
-      <HeroBand tone="brand" eyebrow="Catálogo" title="Servicios y precios">
-        <p className="text-base">
+      <HeroBand
+        tone="brand"
+        eyebrow="Catálogo"
+        title="Servicios y precios"
+        actions={
+          <div className="hidden gap-3 [--tint-hover:var(--color-bg-surface)] [--tint:var(--color-bg-sunken)] md:flex">
+            <Button asChild variant="secondary" className="h-14 px-6" leadingIcon={Percent}>
+              <Link href="/servicios/ajustar">Ajustar todos los precios</Link>
+            </Button>
+            <Button type="button" className="h-14 px-8 text-base font-semibold" leadingIcon={Plus} onClick={() => setCreating(true)}>
+              Agregar servicio
+            </Button>
+          </div>
+        }
+      >
+        <p className="text-base md:text-lg">
           {state.services.length} {state.services.length === 1 ? "servicio" : "servicios"}
           {withVariants > 0 ? ` · ${withVariants} con variantes` : ""}
         </p>
       </HeroBand>
 
-      <div className="flex flex-col gap-3 px-4 py-6 md:px-8">
-        <Button type="button" className="h-14 text-base font-semibold" leadingIcon={Plus} onClick={() => setCreating(true)}>
-          Agregar servicio
-        </Button>
-        <Button asChild variant="secondary" className="h-12" leadingIcon={Percent}>
-          <Link href="/servicios/ajustar">Ajustar todos los precios</Link>
-        </Button>
+      <div className="flex flex-col gap-3 px-4 py-6 md:px-10 md:py-8">
+        <div className="flex flex-col gap-3 md:hidden">
+          <Button type="button" className="h-14 text-base font-semibold" leadingIcon={Plus} onClick={() => setCreating(true)}>
+            Agregar servicio
+          </Button>
+          <Button asChild variant="secondary" className="h-12" leadingIcon={Percent}>
+            <Link href="/servicios/ajustar">Ajustar todos los precios</Link>
+          </Button>
+        </div>
 
-        <ul className="mt-2 divide-y divide-border">
+        <div className="hidden grid-cols-[minmax(0,1fr)_110px_90px_240px_110px_20px] gap-6 border-b border-subtle px-0 pb-2 text-sm font-medium text-muted-foreground lg:grid" aria-hidden>
+          <span>Servicio</span><span>Duración</span><span>Seña</span><span>Variantes</span><span className="text-right">Precio</span><span />
+        </div>
+
+        <ul className="mt-2 divide-y divide-border lg:mt-0">
           {state.services.map((service) => (
             <li key={service.id}>
               <button
                 type="button"
                 onClick={() => setEditing(service)}
-                className="flex min-h-touch w-full items-center gap-3 py-4 text-left transition-colors duration-base ease-out hover:bg-hover"
+                className="flex min-h-touch w-full items-center gap-3 py-4 text-left transition-colors duration-base ease-out hover:bg-hover lg:grid lg:grid-cols-[minmax(0,1fr)_110px_90px_240px_110px_20px] lg:gap-6"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-xl font-semibold">{service.name}</span>
-                  <span className="block text-sm text-muted-foreground">{serviceMeta(state, service)}</span>
+                  <span className="block text-sm text-muted-foreground lg:hidden">{serviceMeta(state, service)}</span>
                 </span>
-                <span className="text-base font-semibold">{formatARS(service.price)}</span>
+                <span className="hidden text-base lg:block">{formatDuration(service.baseDurationMin)}</span>
+                <span className="hidden text-base lg:block">{service.requiresDeposit ? `${service.depositPercent}%` : "—"}</span>
+                <span className="hidden text-base lg:block">
+                  {variantsOf(state, service.id).map((v) => `${v.name} +${v.extraDurationMin} min`).join(" · ") || "—"}
+                </span>
+                <span className="text-base font-semibold lg:text-right">{formatARS(service.price)}</span>
                 <ChevronRight className="size-5 text-tertiary" aria-hidden />
               </button>
             </li>

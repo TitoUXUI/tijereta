@@ -10,13 +10,13 @@ export default function EsperaPage() {
   return (
     <>
       <HeroBand tone="accent" title="Lista de espera">
-        <p className="text-base">
+        <p className="text-base md:text-lg">
           {waiting === 0
             ? "Nadie espera un horario por ahora."
             : `${waiting} ${waiting === 1 ? "persona espera" : "personas esperan"} un horario. Ofrecéselo a quien va primero.`}
         </p>
       </HeroBand>
-      <div className="px-4 py-6 md:px-8">
+      <div className="px-4 py-6 md:px-10 md:py-8">
         <WaitlistPanel />
       </div>
     </>

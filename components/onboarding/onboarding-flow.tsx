@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, Plus, X } from "lucide-react";
-import { HeroBand } from "@/components/layout/hero-band";
+import { SplitLayout } from "@/components/layout/split-layout";
 import { Banner, BannerDescription, BannerTitle } from "@/components/ui/banner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -117,15 +117,12 @@ export function OnboardingFlow() {
   }
 
   return (
-    <>
-      <HeroBand
-        tone="accent"
-        eyebrow={`Paso ${index + 1} de ${STEPS.length}`}
-        title={TITLE[step]}
-      >
-        {SUBTITLE[step] ? <p className="text-base">{SUBTITLE[step]}</p> : null}
-      </HeroBand>
-      <div className="flex flex-col gap-5 px-4 py-6">
+    <SplitLayout
+      eyebrow={`Paso ${index + 1} de ${STEPS.length}`}
+      title={TITLE[step]}
+      subtitle={SUBTITLE[step]}
+    >
+      <div className="flex flex-col gap-5">
         {index > 0 ? (
           <button type="button" onClick={() => setStep(STEPS[index - 1])} className="flex min-h-touch items-center gap-1 self-start text-sm font-medium text-link">
             <ArrowLeft className="size-4" aria-hidden />Volver
@@ -219,6 +216,6 @@ export function OnboardingFlow() {
           {step === "team" ? "Crear mi agenda" : "Seguir"}
         </Button>
       </div>
-    </>
+    </SplitLayout>
   );
 }

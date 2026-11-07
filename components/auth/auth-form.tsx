@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Info } from "lucide-react";
 import { toast } from "sonner";
-import { HeroBand } from "@/components/layout/hero-band";
+import { SplitLayout } from "@/components/layout/split-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,15 +49,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md">
-      <HeroBand
-        tone="accent"
-        title={isSignup ? "Creá tu agenda" : "Entrá a tu agenda"}
-        eyebrow={isSignup ? "Gratis, sin tarjeta" : "Tijereta"}
-      />
+    <SplitLayout
+      title={isSignup ? "Creá tu agenda" : "Entrá a tu agenda"}
+      eyebrow={isSignup ? "Gratis, sin tarjeta" : "Tijereta"}
+      subtitle={isSignup ? "Armá tu salón en unos minutos." : "Seguí donde lo dejaste."}
+      bullets={["Una agenda para todo el equipo", "Un link para pegar en el chat", "Cuánto te queda por servicio"]}
+    >
       <form
         noValidate
-        className="flex flex-col gap-4 px-4 py-6"
+        className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault();
           submit();
@@ -130,6 +130,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
           </Link>
         </Button>
       </form>
-    </main>
+    </SplitLayout>
   );
 }

@@ -25,7 +25,7 @@ export default function ReservarPage({ params }: { params: { slug: string } }) {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-md">
+    <main className="min-h-screen">
       <BookingFlow />
     </main>
   );

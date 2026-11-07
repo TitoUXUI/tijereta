@@ -12,7 +12,7 @@ export default function MargenPage() {
 
   if (state.role !== "owner") {
     return (
-      <div className="p-4 pt-12 md:px-8">
+      <div className="p-4 pt-12 md:px-10">
         <EmptyState icon={Lock} text="El margen y los costos los ve solo la dueña del salón." />
       </div>
     );
@@ -30,7 +30,7 @@ export default function MargenPage() {
             : "Ningún servicio te hace perder plata."}
         </p>
       </HeroBand>
-      <div className="px-4 py-6 md:px-8">
+      <div className="px-4 py-6 md:px-10 md:py-8">
         <ServiceMarginTable rows={rows} averageCommission={averageCommissionPercent(state)} />
       </div>
     </>

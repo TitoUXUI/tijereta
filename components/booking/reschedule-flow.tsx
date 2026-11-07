@@ -46,9 +46,9 @@ export function RescheduleFlow({ token }: { token: string }) {
   const pro = state.professionals.find((p) => p.id === appointment.professionalId);
 
   return (
-    <main className="mx-auto min-h-screen max-w-md">
-      <HeroBand tone="highlight" eyebrow={state.salon.name} title="Elegí un nuevo horario" />
-      <div className="flex flex-col gap-5 px-4 py-6">
+    <main className="min-h-screen">
+      <HeroBand tone="highlight" contained eyebrow={state.salon.name} title="Elegí un nuevo horario" />
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 px-4 py-6 md:py-10">
         <Link href={`/turno/${token}`} className="flex min-h-touch items-center gap-1 self-start text-sm font-medium text-link">
           <ArrowLeft className="size-4" aria-hidden />Volver a mi turno
         </Link>

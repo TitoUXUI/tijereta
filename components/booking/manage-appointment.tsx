@@ -50,9 +50,9 @@ export function ManageAppointment({ token }: { token: string }) {
   const lateForFreeChange = hoursLeft < state.salon.cancelHoursBefore;
 
   return (
-    <main className="mx-auto min-h-screen max-w-md">
-      <HeroBand tone="highlight" eyebrow={state.salon.name} title={appointment.status === "cancelled" ? "Turno cancelado" : "Tu turno"} />
-      <div className="flex flex-col gap-4 px-4 py-6">
+    <main className="min-h-screen">
+      <HeroBand tone="highlight" contained eyebrow={state.salon.name} title={appointment.status === "cancelled" ? "Turno cancelado" : "Tu turno"} />
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6 md:py-10">
         <div className="rounded-card border border-subtle bg-surface p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -84,12 +84,14 @@ export function ManageAppointment({ token }: { token: string }) {
             {lateForFreeChange ? (
               <p className="text-sm text-muted-foreground">Falta poco para tu turno. Si necesitás cambiarlo, escribinos por el chat y lo vemos juntos.</p>
             ) : null}
-            <Button asChild leadingIcon={CalendarClock} className="h-14 text-base font-semibold">
-              <Link href={`/turno/${token}/reagendar`}>Reprogramar</Link>
-            </Button>
-            <Button leadingIcon={CalendarX2} type="button" variant="secondary" className="h-12 gap-2" onClick={() => setConfirming(true)}>
-              Cancelar turno
-            </Button>
+            <div className="flex flex-col gap-3 md:flex-row md:[&>*]:flex-1">
+              <Button asChild leadingIcon={CalendarClock} className="h-14 text-base font-semibold">
+                            <Link href={`/turno/${token}/reagendar`}>Reprogramar</Link>
+                          </Button>
+                          <Button leadingIcon={CalendarX2} type="button" variant="secondary" className="h-12 gap-2" onClick={() => setConfirming(true)}>
+                            Cancelar turno
+                          </Button>
+            </div>
           </>
         )}
       </div>

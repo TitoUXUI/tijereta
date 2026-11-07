@@ -36,7 +36,7 @@ export default function InicioPage() {
   }
 
   return (
-    <main className="mx-auto min-h-screen max-w-2xl">
+    <main className="mx-auto min-h-screen max-w-2xl lg:max-w-5xl">
       <header className="rounded-b-sheet bg-brand px-4 pb-8 pt-6 text-brand-foreground md:px-8">
         <Wordmark className="text-brand-foreground" />
         <h1 className="mt-6 font-display text-[40px] font-black leading-[48px]">Una sola agenda para todo el equipo</h1>
@@ -44,7 +44,7 @@ export default function InicioPage() {
         <p className="mt-4 inline-block rounded-tag bg-primary px-3 py-1 text-sm font-medium text-primary-foreground">Prototipo de portfolio · integraciones simuladas</p>
       </header>
 
-      <div className="grid gap-3 px-4 py-6 md:grid-cols-2 md:px-8">
+      <div className="grid gap-3 px-4 py-6 md:grid-cols-2 md:px-8 lg:grid-cols-4">
         {(Object.entries(ENTRIES) as Array<[string, Entry]>).map(([key, e]) => (
           <section key={key} className="flex flex-col gap-3 rounded-card border border-subtle bg-surface p-4">
             <e.icon className="size-6 text-link" aria-hidden />
